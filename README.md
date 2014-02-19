@@ -9,4 +9,4 @@ docker run -i -t --entrypoint=/bin/bash -p 6080:6080 doro/ubuntu-vnc-desktop
 
 Browse http://127.0.0.1:6080/vnc.html
 
-<img src="http://fcwu.github.com/docker-ubuntu-vnc-desktop/screenshots/lxde.png" width=400/>
+<img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png" width=400/>

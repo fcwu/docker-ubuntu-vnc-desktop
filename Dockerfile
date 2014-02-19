@@ -23,15 +23,18 @@ RUN apt-get install -y --no-install-recommends openssh-server pwgen sudo vim-tin
 RUN apt-get install -y --no-install-recommends lxde
 RUN apt-get install -y --no-install-recommends x11vnc xvfb
 RUN apt-get install -y supervisor
-RUN apt-get install -y libreoffice
-RUN apt-get install -y firefox
+RUN apt-get install -y libreoffice firefox
+# noVNC
+RUN apt-get install -y net-tools
 
 ADD startup.sh /
 ADD supervisord.conf /
+ADD noVNC /noVNC/
 
 # clean up after ourselves
 RUN apt-get clean
 
+EXPOSE 6080
 EXPOSE 5900
 EXPOSE 22
 WORKDIR /

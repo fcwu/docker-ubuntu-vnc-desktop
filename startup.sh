@@ -11,6 +11,8 @@ echo "ubuntu:$PASS" | chpasswd
 
 /usr/bin/supervisord -c /supervisord.conf
 
+cd /tty.js && node ./tty-me.js --daemonize
+
 while [ 1 ]; do
     /bin/bash
 done

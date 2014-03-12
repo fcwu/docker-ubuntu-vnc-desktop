@@ -9,4 +9,8 @@ echo "User: ubuntu Pass: $PASS"
 useradd --create-home --shell /bin/bash --user-group --groups adm,sudo ubuntu
 echo "ubuntu:$PASS" | chpasswd
 
-exec /usr/bin/supervisord -c /supervisord.conf -n
+/usr/bin/supervisord -c /supervisord.conf
+
+while [ 1 ]; do
+    /bin/bash
+done

@@ -1,0 +1,39 @@
+.ds q \N'34'
+.TH tty.js 1
+
+.SH NAME
+tty.js \- a terminal for your browser
+
+.SH SYNOPSIS
+.nf
+.B tty.js [\-p port] [\-\-config file] [\-d]
+.fi
+
+.SH DESCRIPTION
+.B tty.js
+is an xterm for your browser.
+
+.SH OPTIONS
+.TP
+.BI \-p,\ \-\-port\ [port]
+Specify a port to bind to. The default port can also be specified in the config.
+.TP
+.BI \-\-config\ [file]
+Specify a configuration file, overriding the default of ~/.tty.js/config.json.
+.TP
+.BI \-d,\ \-\-daemonize
+Start the process as a daemon.
+.TP
+.BI \-h,\ \-\-help
+Display help information.
+.SH EXAMPLES
+.TP
+tty.js -d -p 3000
+.TP
+tty.js --config ~/my_config.json
+
+.SH BUGS
+Please report any bugs to https://github.com/chjj/tty.js.
+
+.SH LICENSE
+Copyright (c) 2012-2013, Christopher Jeffrey (MIT License)

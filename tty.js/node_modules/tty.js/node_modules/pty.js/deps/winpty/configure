@@ -1,0 +1,85 @@
+#!/bin/bash
+#
+# Copyright (c) 2011-2012 Ryan Prichard
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+#
+# findTool(desc, commandList)
+#
+# Searches commandLine for the first command in the PATH and returns it.
+# Prints an error and aborts the script if no match is found.
+#
+FINDTOOL_OUT=""
+function findTool {
+    DESC=$1
+    OPTIONS=$2
+    for CMD in ${OPTIONS}; do
+        if (which $CMD &>/dev/null) then
+            echo "Found $DESC: $CMD"
+            FINDTOOL_OUT="$CMD"
+            return
+        fi
+    done
+    echo "Error: could not find $DESC.  One of these should be in your PATH:"
+    for CMD in ${OPTIONS}; do
+        echo " * $CMD"
+    done
+    exit 1
+}
+
+IS_CYGWIN=0
+IS_MSYS=0
+
+# Detect the environment -- Cygwin or MSYS.
+case $(uname -s) in
+    CYGWIN*)
+        echo 'uname -s identifies a Cygwin environment.'
+        IS_CYGWIN=1
+        UNIX_GPP=i686-pc-cygwin-g++
+        MINGW_GPP="i686-pc-mingw32-g++ i686-w64-mingw32-g++"
+        UNIX_LDFLAGS_STATIC_LIBSTDCXX="-static-libgcc -static-libstdc++"
+        ;;
+    MINGW*)
+        echo 'uname -s identifies a MSYS environment.'
+        IS_MSYS=1
+        UNIX_GPP=i686-pc-msys-g++
+        MINGW_GPP=mingw32-g++
+        # The MSYS compiler does not recognize -static-libstdc++.  There is a
+        # msys-1.0.dll, but no gcc or stdc++ DLL.
+        UNIX_LDFLAGS_STATIC_LIBSTDCXX=
+        ;;
+    *)
+        echo 'Error: uname -s did not match either CYGWIN* or MINGW*.'
+        exit 1
+        ;;
+esac
+
+# Search the PATH and pick the first match.
+findTool "Cygwin/MSYS G++ compiler" "$UNIX_GPP"
+UNIX_GPP=$FINDTOOL_OUT
+findTool "32-bit MinGW G++ compiler" "$MINGW_GPP"
+MINGW_GPP=$FINDTOOL_OUT
+
+# Write config files.
+echo Writing config-unix.mk
+echo CXX=$UNIX_GPP > config-unix.mk
+echo LDFLAGS_STATIC_LIBSTDCXX=$UNIX_LDFLAGS_STATIC_LIBSTDCXX >> config-unix.mk
+echo Writing config-mingw.mk
+echo CXX=$MINGW_GPP > config-mingw.mk

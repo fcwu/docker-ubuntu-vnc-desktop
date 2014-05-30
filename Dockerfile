@@ -29,10 +29,6 @@ RUN apt-get update \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
-# Add 
-ADD ambiance-radiance-xfce-lxde_2.0~trusty~NoobsLab.com_all.deb /
-RUN dpkg -i *.deb
-
 ADD noVNC /noVNC/
 
 ADD startup.sh /

@@ -77,7 +77,7 @@
         // Load supporting scripts
         Util.load_scripts(["webutil.js", "base64.js", "websock.js", "des.js",
                            "keysymdef.js", "keyboard.js", "input.js", "display.js",
-                           "jsunzip.js", "rfb.js"]);
+                           "jsunzip.js", "rfb.js", "keysym.js"]);
 
         var rfb;
 
@@ -198,7 +198,7 @@
                            'local_cursor': WebUtil.getQueryVar('cursor', true),
                            'shared':       WebUtil.getQueryVar('shared', true),
                            'view_only':    WebUtil.getQueryVar('view_only', false),
-                           'updateState':  updateState,
+                           'onUpdateState':  updateState,
                            'onXvpInit':    xvpInit,
                            'onPasswordRequired':  passwordRequired});
             rfb.connect(host, port, password, path);

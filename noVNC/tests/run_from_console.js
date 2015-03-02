@@ -15,19 +15,43 @@ program
   .option('-c, --color', 'Explicitly enable color (default is to use color when not outputting to a pipe)')
   .option('-i, --auto-inject <includefiles>', 'Treat the test list as a set of mocha JS files, and automatically generate HTML files with which to test test.  \'includefiles\' should be a comma-separated list of paths to javascript files to include in each of the generated HTML files', make_list, null)
   .option('-p, --provider <name>', 'Use the given provider (defaults to "casper").  Currently, may be "casper" or "zombie"', 'casper')
-  .option('-g, --generate-html', 'Instead of running the tests, just return the path to the generated HTML file, then wait for user interaction to exit (should be used with .js tests)')
-  .option('-o, --output-html', 'Instead of running the tests, just output the generated HTML source to STDOUT (should be used with .js tests)')
+  .option('-g, --generate-html', 'Instead of running the tests, just return the path to the generated HTML file, then wait for user interaction to exit (should be used with .js tests).')
+  .option('-o, --open-in-browser', 'Open the generated HTML files in a web browser using the "open" module (must be used with the "-g"/"--generate-html" option).')
+  .option('--output-html', 'Instead of running the tests, just output the generated HTML source to STDOUT (should be used with .js tests)')
   .option('-d, --debug', 'Show debug output (the "console" event) from the provider')
+  .option('-r, --relative', 'Use relative paths in the generated HTML file')
   .parse(process.argv);
 
 if (program.tests.length === 0) {
   program.tests = fs.readdirSync(__dirname).filter(function(f) { return (/^test\.(\w|\.|-)+\.js$/).test(f); });
+  program.tests = program.tests.map(function (f) { return path.resolve(__dirname, f); }); // add full paths in
   console.log('using files %s', program.tests);
 }
 
 var file_paths = [];
 
 var all_js = program.tests.reduce(function(a,e) { return a && e.slice(-3) == '.js'; }, true);
+
+var get_path = function (/* arguments */) {
+  if (program.relative) {
+    return path.join.apply(null, arguments);
+  } else {
+    var args = Array.prototype.slice.call(arguments);
+    args.unshift(__dirname, '..');
+    return path.resolve.apply(null, args);
+  }
+};
+
+var get_path_cwd = function (/* arguments */) {
+  if (program.relative) {
+    var part_path = path.join.apply(null, arguments);
+    return path.relative(path.join(__dirname, '..'), path.resolve(process.cwd(), part_path));
+  } else {
+    var args = Array.prototype.slice.call(arguments);
+    args.unshift(process.cwd());
+    return path.resolve.apply(null, args);
+  }
+};
 
 if (all_js && !program.autoInject) {
   var all_modules = {};
@@ -42,7 +66,17 @@ if (all_js && !program.autoInject) {
       var eol = content.indexOf('\n', ind);
       var modules = content.slice(ind, eol).split(/,\s*/);
       modules.forEach(function (mod) {
-        all_modules[path.resolve(__dirname, '../include/', mod)+'.js'] = 1;
+        all_modules[get_path('include/', mod) + '.js'] = 1;
+      });
+    }
+
+    var fakes_ind = content.indexOf('requires test modules: ');
+    if (fakes_ind > -1) {
+      fakes_ind += 'requires test modules: '.length;
+      var fakes_eol = content.indexOf('\n', fakes_ind);
+      var fakes_modules = content.slice(fakes_ind, fakes_eol).split(/,\s*/);
+      fakes_modules.forEach(function (mod) {
+        all_modules[get_path('tests/', mod) + '.js'] = 1;
       });
     }
   });
@@ -55,26 +89,27 @@ if (program.autoInject) {
   temp.track();
 
   var template = {
-    header: "<html>\n<head>\n<meta charset='utf-8' />\n<link rel='stylesheet' href='" + path.resolve(__dirname, 'node_modules/mocha/mocha.css') + "'/>\n</head>\n<body><div id='mocha'></div>",
+    header: "<html>\n<head>\n<meta charset='utf-8' />\n<link rel='stylesheet' href='" + get_path('node_modules/mocha/mocha.css') + "'/>\n</head>\n<body><div id='mocha'></div>",
     script_tag: function(p) { return "<script src='" + p + "'></script>"; },
-    footer: "<script>\nmocha.checkLeaks();\nmocha.globals(['navigator', 'create', 'ClientUtils', '__utils__']);\nmocha.run();\n</script>\n</body>\n</html>"
+    footer: "<script>\nmocha.checkLeaks();\nmocha.globals(['navigator', 'create', 'ClientUtils', '__utils__']);\nmocha.run(function () { window.__mocha_done = true; });\n</script>\n</body>\n</html>"
   };
 
-  template.header += "\n" + template.script_tag(path.resolve(__dirname, 'node_modules/chai/chai.js'));
-  template.header += "\n" + template.script_tag(path.resolve(__dirname, 'node_modules/mocha/mocha.js'));
-  template.header += "\n" + template.script_tag(path.resolve(__dirname, 'node_modules/sinon/pkg/sinon.js'));
-  template.header += "\n" + template.script_tag(path.resolve(__dirname, 'node_modules/sinon-chai/lib/sinon-chai.js'));
+  template.header += "\n" + template.script_tag(get_path('node_modules/chai/chai.js'));
+  template.header += "\n" + template.script_tag(get_path('node_modules/mocha/mocha.js'));
+  template.header += "\n" + template.script_tag(get_path('node_modules/sinon/pkg/sinon.js'));
+  template.header += "\n" + template.script_tag(get_path('node_modules/sinon-chai/lib/sinon-chai.js'));
+  template.header += "\n" + template.script_tag(get_path('node_modules/sinon-chai/lib/sinon-chai.js'));
   template.header += "\n<script>mocha.setup('bdd');</script>";
 
 
   template.header = program.autoInject.reduce(function(acc, sn) {
-    return acc + "\n" + template.script_tag(path.resolve(process.cwd(), sn));
+    return acc + "\n" + template.script_tag(get_path_cwd(sn));
   }, template.header);
 
   file_paths = program.tests.map(function(jsn, ind) {
     var templ = template.header;
     templ += "\n";
-    templ += template.script_tag(path.resolve(process.cwd(), jsn));
+    templ += template.script_tag(get_path_cwd(jsn));
     templ += template.footer;
 
     var tempfile = temp.openSync({ prefix: 'novnc-zombie-inject-', suffix: '-file_num-'+ind+'.html' });
@@ -105,20 +140,29 @@ if (program.outputHtml) {
         return;
       }
 
+      if (use_ansi) {
+          cursor
+            .bold()
+            .write(program.tests[path_ind])
+            .reset()
+            .write("\n")
+            .write(Array(program.tests[path_ind].length+1).join('='))
+            .write("\n\n");
+      }
+
       cursor
-        .bold()
-        .write(program.tests[path_ind])
-        .reset()
-        .write("\n")
-        .write(Array(program.tests[path_ind].length+1).join('='))
-        .write("\n\n")
         .write(data)
-        .write("\n");
+        .write("\n\n");
     });
   });
 }
 
 if (program.generateHtml) {
+  var open_browser;
+  if (program.openInBrowser) {
+    open_browser = require('open');
+  }
+
   file_paths.forEach(function(path, path_ind) {
     cursor
       .bold()
@@ -127,6 +171,10 @@ if (program.generateHtml) {
       .reset()
       .write(path)
       .write("\n");
+
+    if (program.openInBrowser) {
+      open_browser(path);
+    }
   });
   console.log('');
 }
@@ -276,9 +324,15 @@ if (!program.outputHtml && !program.generateHtml) {
 
   if (program.debug) {
     provider.on('console', function(line) {
-      console.log(line);
+      // log to stderr
+      console.error(line);
     });
   }
+
+  provider.on('error', function(line) {
+    // log to stderr
+    console.error('ERROR: ' + line);
+  });
 
   /*gprom.finally(function(ph) {
     ph.exit();

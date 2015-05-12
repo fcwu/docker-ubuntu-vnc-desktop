@@ -433,72 +433,15 @@ Util.load_scripts = function (files) {
 };
 
 
-// Get DOM element position on page
-//  This solution is based based on http://www.greywyvern.com/?post=331
-//  Thanks to Brian Huisman AKA GreyWyvern!
-Util.getPosition = (function () {
+Util.getPosition = function(obj) {
     "use strict";
-    function getStyle(obj, styleProp) {
-        var y;
-        if (obj.currentStyle) {
-            y = obj.currentStyle[styleProp];
-        } else if (window.getComputedStyle)
-            y = window.getComputedStyle(obj, null)[styleProp];
-        return y;
-    }
-
-    function scrollDist() {
-        var myScrollTop = 0, myScrollLeft = 0;
-        var html = document.getElementsByTagName('html')[0];
-
-        // get the scrollTop part
-        if (html.scrollTop && document.documentElement.scrollTop) {
-            myScrollTop = html.scrollTop;
-        } else if (html.scrollTop || document.documentElement.scrollTop) {
-            myScrollTop = html.scrollTop + document.documentElement.scrollTop;
-        } else if (document.body.scrollTop) {
-            myScrollTop = document.body.scrollTop;
-        } else {
-            myScrollTop = 0;
-        }
-
-        // get the scrollLeft part
-        if (html.scrollLeft && document.documentElement.scrollLeft) {
-            myScrollLeft = html.scrollLeft;
-        } else if (html.scrollLeft || document.documentElement.scrollLeft) {
-            myScrollLeft = html.scrollLeft + document.documentElement.scrollLeft;
-        } else if (document.body.scrollLeft) {
-            myScrollLeft = document.body.scrollLeft;
-        } else {
-            myScrollLeft = 0;
-        }
-
-        return [myScrollLeft, myScrollTop];
-    }
-
-    return function (obj) {
-        var curleft = 0, curtop = 0, scr = obj, fixed = false;
-        while ((scr = scr.parentNode) && scr != document.body) {
-            curleft -= scr.scrollLeft || 0;
-            curtop -= scr.scrollTop || 0;
-            if (getStyle(scr, "position") == "fixed") {
-                fixed = true;
-            }
-        }
-        if (fixed && !window.opera) {
-            var scrDist = scrollDist();
-            curleft += scrDist[0];
-            curtop += scrDist[1];
-        }
-
-        do {
-            curleft += obj.offsetLeft;
-            curtop += obj.offsetTop;
-        } while ((obj = obj.offsetParent));
-
-        return {'x': curleft, 'y': curtop};
-    };
-})();
+    // NB(sross): the Mozilla developer reference seems to indicate that
+    // getBoundingClientRect includes border and padding, so the canvas
+    // style should NOT include either.
+    var objPosition = obj.getBoundingClientRect();
+    return {'x': objPosition.left + window.pageXOffset, 'y': objPosition.top + window.pageYOffset,
+            'width': objPosition.width, 'height': objPosition.height};
+};
 
 
 // Get mouse event position in DOM element
@@ -523,8 +466,8 @@ Util.getEventPosition = function (e, obj, scale) {
     }
     var realx = docX - pos.x;
     var realy = docY - pos.y;
-    var x = Math.max(Math.min(realx, obj.width - 1), 0);
-    var y = Math.max(Math.min(realy, obj.height - 1), 0);
+    var x = Math.max(Math.min(realx, pos.width - 1), 0);
+    var y = Math.max(Math.min(realy, pos.height - 1), 0);
     return {'x': x / scale, 'y': y / scale, 'realx': realx / scale, 'realy': realy / scale};
 };
 
@@ -565,6 +508,29 @@ Util.stopEvent = function (e) {
     else                   { e.returnValue = false; }
 };
 
+Util._cursor_uris_supported = null;
+
+Util.browserSupportsCursorURIs = function () {
+    if (Util._cursor_uris_supported === null) {
+        try {
+            var target = document.createElement('canvas');
+            target.style.cursor = 'url("data:image/x-icon;base64,AAACAAEACAgAAAIAAgA4AQAAFgAAACgAAAAIAAAAEAAAAAEAIAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAD/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AAAAAAAAAAAAAAAAAAAAAA==") 2 2, default';
+
+            if (target.style.cursor) {
+                Util.Info("Data URI scheme cursor supported");
+                Util._cursor_uris_supported = true;
+            } else {
+                Util.Warn("Data URI scheme cursor not supported");
+                Util._cursor_uris_supported = false;
+            }
+        } catch (exc) {
+            Util.Error("Data URI scheme cursor test exception: " + exc);
+            Util._cursor_uris_supported = false;
+        }
+    }
+
+    return Util._cursor_uris_supported;
+};
 
 // Set browser engine versions. Based on mootools.
 Util.Features = {xpath: !!(document.evaluate), air: !!(window.runtime), query: !!(document.querySelector)};

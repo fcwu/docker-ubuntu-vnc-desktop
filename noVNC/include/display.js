@@ -1,6 +1,7 @@
 /*
  * noVNC: HTML5 VNC client
  * Copyright (C) 2012 Joel Martin
+ * Copyright (C) 2015 Samuel Mannehed for Cendio AB
  * Licensed under MPL 2.0 (see LICENSE.txt)
  *
  * See README.md for usage and integration instructions.
@@ -23,6 +24,10 @@ var Display;
         // the full frame buffer (logical canvas) size
         this._fb_width = 0;
         this._fb_height = 0;
+
+        // the size limit of the viewport (start disabled)
+        this._maxWidth = 0;
+        this._maxHeight = 0;
 
         // the visible "physical canvas" viewport
         this._viewportLoc = { 'x': 0, 'y': 0, 'w': 0, 'h': 0 };
@@ -81,28 +86,9 @@ var Display;
         }
 
         // Determine browser support for setting the cursor via data URI scheme
-        var curDat = [];
-        for (var i = 0; i < 8 * 8 * 4; i++) {
-            curDat.push(255);
-        }
-        try {
-            var curSave = this._target.style.cursor;
-            Display.changeCursor(this._target, curDat, curDat, 2, 2, 8, 8);
-            if (this._target.style.cursor) {
-                if (this._cursor_uri === null || this._cursor_uri === undefined) {
-                    this._cursor_uri = true;
-                }
-                Util.Info("Data URI scheme cursor supported");
-            } else {
-                if (this._cursor_uri === null || this._cursor_uri === undefined) {
-                    this._cursor_uri = false;
-                }
-                Util.Warn("Data URI scheme cursor not supported");
-            }
-            this._target.style.cursor = curSave;
-        } catch (exc) {
-            Util.Error("Data URI scheme cursor test exception: " + exc);
-            this._cursor_uri = false;
+        if (this._cursor_uri || this._cursor_uri === null ||
+                this._cursor_uri === undefined) {
+            this._cursor_uri = Util.browserSupportsCursorURIs();
         }
 
         Util.Debug("<< Display.constructor");
@@ -110,54 +96,12 @@ var Display;
 
     Display.prototype = {
         // Public methods
-        viewportChange: function (deltaX, deltaY, width, height) {
+        viewportChangePos: function (deltaX, deltaY) {
             var vp = this._viewportLoc;
-            var cr = this._cleanRect;
-            var canvas = this._target;
 
             if (!this._viewport) {
-                Util.Debug("Setting viewport to full display region");
                 deltaX = -vp.w;  // clamped later of out of bounds
                 deltaY = -vp.h;
-                width = this._fb_width;
-                height = this._fb_height;
-            }
-
-            if (typeof(deltaX) === "undefined") { deltaX = 0; }
-            if (typeof(deltaY) === "undefined") { deltaY = 0; }
-            if (typeof(width) === "undefined") { width = vp.w; }
-            if (typeof(height) === "undefined") { height = vp.h; }
-
-            // Size change
-            if (width > this._fb_width) { width = this._fb_width; }
-            if (height > this._fb_height) { height = this._fb_height; }
-
-            if (vp.w !== width || vp.h !== height) {
-                // Change width
-                if (width < vp.w &&  cr.x2 > vp.x + width - 1) {
-                    cr.x2 = vp.x + width - 1;
-                }
-                vp.w = width;
-
-                // Change height
-                if (height < vp.h &&  cr.y2 > vp.y + height - 1) {
-                    cr.y2 = vp.y + height - 1;
-                }
-                vp.h = height;
-
-                var saveImg = null;
-                if (vp.w > 0 && vp.h > 0 && canvas.width > 0 && canvas.height > 0) {
-                    var img_width = canvas.width < vp.w ? canvas.width : vp.w;
-                    var img_height = canvas.height < vp.h ? canvas.height : vp.h;
-                    saveImg = this._drawCtx.getImageData(0, 0, img_width, img_height);
-                }
-
-                canvas.width = vp.w;
-                canvas.height = vp.h;
-
-                if (saveImg) {
-                    this._drawCtx.putImageData(saveImg, 0, 0);
-                }
             }
 
             var vx2 = vp.x + vp.w - 1;
@@ -190,6 +134,7 @@ var Display;
             vy2 += deltaY;
 
             // Update the clean rectangle
+            var cr = this._cleanRect;
             if (vp.x > cr.x1) {
                 cr.x1 = vp.x;
             }
@@ -227,6 +172,7 @@ var Display;
 
             // Copy the valid part of the viewport to the shifted location
             var saveStyle = this._drawCtx.fillStyle;
+            var canvas = this._target;
             this._drawCtx.fillStyle = "rgb(255,255,255)";
             if (deltaX !== 0) {
                 this._drawCtx.drawImage(canvas, 0, 0, vp.w, vp.h, -deltaX, 0, vp.w, vp.h);
@@ -237,6 +183,65 @@ var Display;
                 this._drawCtx.fillRect(0, y1, vp.w, h);
             }
             this._drawCtx.fillStyle = saveStyle;
+        },
+
+        viewportChangeSize: function(width, height) {
+
+            if (typeof(width) === "undefined" || typeof(height) === "undefined") {
+
+                Util.Debug("Setting viewport to full display region");
+                width = this._fb_width;
+                height = this._fb_height;
+            }
+
+            var vp = this._viewportLoc;
+            if (vp.w !== width || vp.h !== height) {
+
+                if (this._viewport) {
+                    if (this._maxWidth !== 0 && width > this._maxWidth) {
+                        width = this._maxWidth;
+                    }
+                    if (this._maxHeight !== 0 && height > this._maxHeight) {
+                        height = this._maxHeight;
+                    }
+                }
+
+                var cr = this._cleanRect;
+
+                if (width < vp.w &&  cr.x2 > vp.x + width - 1) {
+                    cr.x2 = vp.x + width - 1;
+                }
+                if (height < vp.h &&  cr.y2 > vp.y + height - 1) {
+                    cr.y2 = vp.y + height - 1;
+                }
+
+                vp.w = width;
+                vp.h = height;
+
+                var canvas = this._target;
+                if (canvas.width !== width || canvas.height !== height) {
+
+                    // We have to save the canvas data since changing the size will clear it
+                    var saveImg = null;
+                    if (vp.w > 0 && vp.h > 0 && canvas.width > 0 && canvas.height > 0) {
+                        var img_width = canvas.width < vp.w ? canvas.width : vp.w;
+                        var img_height = canvas.height < vp.h ? canvas.height : vp.h;
+                        saveImg = this._drawCtx.getImageData(0, 0, img_width, img_height);
+                    }
+
+                    if (canvas.width  !== width)  { canvas.width  = width; }
+                    if (canvas.height !== height) { canvas.height = height; }
+
+                    if (this._viewport) {
+                        canvas.style.height = height + 'px';
+                        canvas.style.width = width + 'px';
+                    }
+
+                    if (saveImg) {
+                        this._drawCtx.putImageData(saveImg, 0, 0);
+                    }
+                }
+            }
         },
 
         // Return a map of clean and dirty areas of the viewport and reset the
@@ -304,7 +309,7 @@ var Display;
 
             this._rescale(this._scale);
 
-            this.viewportChange();
+            this.viewportChangeSize();
         },
 
         clear: function () {
@@ -470,6 +475,24 @@ var Display;
             this._target.style.cursor = "default";
         },
 
+        disableLocalCursor: function () {
+            this._target.style.cursor = "none";
+        },
+
+        clippingDisplay: function () {
+            var vp = this._viewportLoc;
+
+            var fbClip = this._fb_width > vp.w || this._fb_height > vp.h;
+            var limitedVp = this._maxWidth !== 0 && this._maxHeight !== 0;
+            var clipping = false;
+
+            if (limitedVp) {
+                clipping = vp.w > this._maxWidth || vp.h > this._maxHeight;
+            }
+
+            return fbClip || (limitedVp && clipping);
+        },
+
         // Overridden getters/setters
         get_context: function () {
             return this._drawCtx;
@@ -480,51 +503,73 @@ var Display;
         },
 
         set_width: function (w) {
-            this.resize(w, this._fb_height);
+            this._fb_width = w;
         },
         get_width: function () {
             return this._fb_width;
         },
 
         set_height: function (h) {
-            this.resize(this._fb_width, h);
+            this._fb_height =  h;
         },
         get_height: function () {
             return this._fb_height;
         },
 
+        autoscale: function (containerWidth, containerHeight, downscaleOnly) {
+            var targetAspectRatio = containerWidth / containerHeight;
+            var fbAspectRatio = this._fb_width / this._fb_height;
+
+            var scaleRatio;
+            if (fbAspectRatio >= targetAspectRatio) {
+                scaleRatio = containerWidth / this._fb_width;
+            } else {
+                scaleRatio = containerHeight / this._fb_height;
+            }
+
+            var targetW, targetH;
+            if (scaleRatio > 1.0 && downscaleOnly) {
+                targetW = this._fb_width;
+                targetH = this._fb_height;
+                scaleRatio = 1.0;
+            } else if (fbAspectRatio >= targetAspectRatio) {
+                targetW = containerWidth;
+                targetH = Math.round(containerWidth / fbAspectRatio);
+            } else {
+                targetW = Math.round(containerHeight * fbAspectRatio);
+                targetH = containerHeight;
+            }
+
+            // NB(directxman12): If you set the width directly, or set the
+            //                   style width to a number, the canvas is cleared.
+            //                   However, if you set the style width to a string
+            //                   ('NNNpx'), the canvas is scaled without clearing.
+            this._target.style.width = targetW + 'px';
+            this._target.style.height = targetH + 'px';
+
+            this._scale = scaleRatio;
+
+            return scaleRatio;  // so that the mouse, etc scale can be set
+        },
+
         // Private Methods
         _rescale: function (factor) {
-            var canvas = this._target;
-            var properties = ['transform', 'WebkitTransform', 'MozTransform'];
-            var transform_prop;
-            while ((transform_prop = properties.shift())) {
-                if (typeof canvas.style[transform_prop] !== 'undefined') {
-                    break;
-                }
-            }
-
-            if (transform_prop === null) {
-                Util.Debug("No scaling support");
-                return;
-            }
-
-            if (typeof(factor) === "undefined") {
-                factor = this._scale;
-            } else if (factor > 1.0) {
-                factor = 1.0;
-            } else if (factor < 0.1) {
-                factor = 0.1;
-            }
-
-            if (this._scale === factor) {
-                return;
-            }
-
             this._scale = factor;
-            var x = canvas.width - (canvas.width * factor);
-            var y = canvas.height - (canvas.height * factor);
-            canvas.style[transform_prop] = 'scale(' + this._scale + ') translate(-' + x + 'px, -' + y + 'px)';
+
+            var w;
+            var h;
+
+            if (this._viewport &&
+                this._maxWidth !== 0 && this._maxHeight !== 0) {
+                w = Math.min(this._fb_width, this._maxWidth);
+                h = Math.min(this._fb_height, this._maxHeight);
+            } else {
+                w = this._fb_width;
+                h = this._fb_height;
+            }
+
+            this._target.style.width = Math.round(factor * w) + 'px';
+            this._target.style.height = Math.round(factor * h) + 'px';
         },
 
         _setFillColor: function (color) {
@@ -626,9 +671,11 @@ var Display;
         ['true_color', 'rw', 'bool'],  // Use true-color pixel data
         ['colourMap', 'rw', 'arr'],    // Colour map array (when not true-color)
         ['scale', 'rw', 'float'],      // Display area scale factor 0.0 - 1.0
-        ['viewport', 'rw', 'bool'],    // Use a viewport set with viewportChange()
+        ['viewport', 'rw', 'bool'],    // Use viewport clipping
         ['width', 'rw', 'int'],        // Display area width
         ['height', 'rw', 'int'],       // Display area height
+        ['maxWidth', 'rw', 'int'],     // Viewport max width (0 if disabled)
+        ['maxHeight', 'rw', 'int'],    // Viewport max height (0 if disabled)
 
         ['render_mode', 'ro', 'str'],  // Canvas rendering mode (read-only)
 

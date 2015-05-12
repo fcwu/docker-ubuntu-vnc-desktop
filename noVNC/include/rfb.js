@@ -37,23 +37,24 @@ var RFB;
 
         // In preference order
         this._encodings = [
-            ['COPYRECT',         0x01 ],
-            ['TIGHT',            0x07 ],
-            ['TIGHT_PNG',        -260 ],
-            ['HEXTILE',          0x05 ],
-            ['RRE',              0x02 ],
-            ['RAW',              0x00 ],
-            ['DesktopSize',      -223 ],
-            ['Cursor',           -239 ],
+            ['COPYRECT',            0x01 ],
+            ['TIGHT',               0x07 ],
+            ['TIGHT_PNG',           -260 ],
+            ['HEXTILE',             0x05 ],
+            ['RRE',                 0x02 ],
+            ['RAW',                 0x00 ],
+            ['DesktopSize',         -223 ],
+            ['Cursor',              -239 ],
 
             // Psuedo-encoding settings
-            //['JPEG_quality_lo',   -32 ],
-            ['JPEG_quality_med',    -26 ],
-            //['JPEG_quality_hi',   -23 ],
-            //['compress_lo',      -255 ],
-            ['compress_hi',        -247 ],
-            ['last_rect',          -224 ],
-            ['xvp',                -309 ]
+            //['JPEG_quality_lo',    -32 ],
+            ['JPEG_quality_med',     -26 ],
+            //['JPEG_quality_hi',    -23 ],
+            //['compress_lo',       -255 ],
+            ['compress_hi',         -247 ],
+            ['last_rect',           -224 ],
+            ['xvp',                 -309 ],
+            ['ExtendedDesktopSize', -308 ]
         ];
 
         this._encHandlers = {};
@@ -106,6 +107,10 @@ var RFB;
             pixels: 0
         };
 
+        this._supportsSetDesktopSize = false;
+        this._screen_id = 0;
+        this._screen_flags = 0;
+
         // Mouse state
         this._mouse_buttonMask = 0;
         this._mouse_arr = [];
@@ -154,11 +159,13 @@ var RFB;
             this._encStats[this._encodings[i][1]] = [0, 0];
         }
 
+        // NB: nothing that needs explicit teardown should be done
+        // before this point, since this can throw an exception
         try {
             this._display = new Display({target: this._target});
         } catch (exc) {
             Util.Error("Display exception: " + exc);
-            this._updateState('fatal', "No working Display");
+            throw exc;
         }
 
         this._keyboard = new Keyboard({target: this._focusContainer,
@@ -197,6 +204,7 @@ var RFB;
             } else {
                 this._fail("Server disconnected" + msg);
             }
+            this._sock.off('close');
         }.bind(this));
         this._sock.on('error', function (e) {
             Util.Warn("WebSocket on-error event");
@@ -211,9 +219,11 @@ var RFB;
         } else {
             Util.Warn("Using web-socket-js bridge.  Flash version: " + Util.Flash.version);
             if (!Util.Flash || Util.Flash.version < 9) {
-                this._updateState('fatal', "WebSockets or <a href='http://get.adobe.com/flashplayer'>Adobe Flash</a> is required");
+                this._cleanupSocket('fatal');
+                throw new Exception("WebSockets or <a href='http://get.adobe.com/flashplayer'>Adobe Flash</a> is required");
             } else if (document.location.href.substr(0, 7) === 'file://') {
-                this._updateState('fatal', "'file://' URL is incompatible with Adobe Flash");
+                this._cleanupSocket('fatal');
+                throw new Exception("'file://' URL is incompatible with Adobe Flash");
             } else {
                 this._updateState('loaded', 'noVNC ready: WebSockets emulation, ' + rmode);
             }
@@ -239,6 +249,9 @@ var RFB;
 
         disconnect: function () {
             this._updateState('disconnect', 'Disconnecting');
+            this._sock.off('error');
+            this._sock.off('message');
+            this._sock.off('open');
         },
 
         sendPassword: function (passwd) {
@@ -300,6 +313,32 @@ var RFB;
             if (this._rfb_state !== 'normal') { return; }
             this._sock.send(RFB.messages.clientCutText(text));
         },
+
+        setDesktopSize: function (width, height) {
+            if (this._rfb_state !== "normal") { return; }
+
+            if (this._supportsSetDesktopSize) {
+
+                var arr = [251];    // msg-type
+                arr.push8(0);       // padding
+                arr.push16(width);  // width
+                arr.push16(height); // height
+
+                arr.push8(1);       // number-of-screens
+                arr.push8(0);       // padding
+
+                // screen array
+                arr.push32(this._screen_id);    // id
+                arr.push16(0);                  // x-position
+                arr.push16(0);                  // y-position
+                arr.push16(width);              // width
+                arr.push16(height);             // height
+                arr.push32(this._screen_flags); // flags
+
+                this._sock.send(arr);
+            }
+        },
+
 
         // Private methods
 
@@ -363,6 +402,32 @@ var RFB;
             }
         },
 
+        _cleanupSocket: function (state) {
+            if (this._sendTimer) {
+                clearInterval(this._sendTimer);
+                this._sendTimer = null;
+            }
+
+            if (this._msgTimer) {
+                clearInterval(this._msgTimer);
+                this._msgTimer = null;
+            }
+
+            if (this._display && this._display.get_context()) {
+                this._keyboard.ungrab();
+                this._mouse.ungrab();
+                if (state !== 'connect' && state !== 'loaded') {
+                    this._display.defaultCursor();
+                }
+                if (Util.get_logging() !== 'debug' || state === 'loaded') {
+                    // Show noVNC logo on load and when disconnected, unless in
+                    // debug mode
+                    this._display.clear();
+                }
+            }
+
+            this._sock.close();
+        },
 
         /*
          * Page states:
@@ -397,29 +462,7 @@ var RFB;
              */
             if (state in {'disconnected': 1, 'loaded': 1, 'connect': 1,
                           'disconnect': 1, 'failed': 1, 'fatal': 1}) {
-
-                if (this._sendTimer) {
-                    clearInterval(this._sendTimer);
-                    this._sendTimer = null;
-                }
-
-                if (this._msgTimer) {
-                    clearInterval(this._msgTimer);
-                    this._msgTimer = null;
-                }
-
-                if (this._display && this._display.get_context()) {
-                    this._keyboard.ungrab();
-                    this._mouse.ungrab();
-                    this._display.defaultCursor();
-                    if (Util.get_logging() !== 'debug' || state === 'loaded') {
-                        // Show noVNC logo on load and when disconnected, unless in
-                        // debug mode
-                        this._display.clear();
-                    }
-                }
-
-                this._sock.close();
+                this._cleanupSocket(state);
             }
 
             if (oldstate === 'fatal') {
@@ -445,6 +488,7 @@ var RFB;
                 Util.Debug("Clearing disconnect timer");
                 clearTimeout(this._disconnTimer);
                 this._disconnTimer = null;
+                this._sock.off('close');  // make sure we don't get a double event
             }
 
             switch (state) {
@@ -579,7 +623,7 @@ var RFB;
                 var deltaY = this._viewportDragPos.y - y;
                 this._viewportDragPos = {'x': x, 'y': y};
 
-                this._display.viewportChange(deltaX, deltaY);
+                this._display.viewportChangePos(deltaX, deltaY);
 
                 // Skip sending mouse events
                 return;
@@ -938,8 +982,8 @@ var RFB;
             }
 
             this._display.set_true_color(this._true_color);
-            this._onFBResize(this, this._fb_width, this._fb_height);
             this._display.resize(this._fb_width, this._fb_height);
+            this._onFBResize(this, this._fb_width, this._fb_height);
             this._keyboard.grab();
             this._mouse.grab();
 
@@ -1215,11 +1259,13 @@ var RFB;
     RFB.prototype.set_local_cursor = function (cursor) {
         if (!cursor || (cursor in {'0': 1, 'no': 1, 'false': 1})) {
             this._local_cursor = false;
+            this._display.disableLocalCursor(); //Only show server-side cursor
         } else {
             if (this._display.get_cursor_uri()) {
                 this._local_cursor = true;
             } else {
                 Util.Warn("Browser does not support local cursor");
+                this._display.disableLocalCursor();
             }
         }
     };
@@ -1832,18 +1878,81 @@ var RFB;
             return true;
         },
 
-        DesktopSize: function () {
-            Util.Debug(">> set_desktopsize");
+        handle_FB_resize: function () {
             this._fb_width = this._FBU.width;
             this._fb_height = this._FBU.height;
-            this._onFBResize(this, this._fb_width, this._fb_height);
             this._display.resize(this._fb_width, this._fb_height);
+            this._onFBResize(this, this._fb_width, this._fb_height);
             this._timing.fbu_rt_start = (new Date()).getTime();
 
             this._FBU.bytes = 0;
-            this._FBU.rects--;
+            this._FBU.rects -= 1;
+            return true;
+        },
 
-            Util.Debug("<< set_desktopsize");
+        ExtendedDesktopSize: function () {
+            this._FBU.bytes = 1;
+            if (this._sock.rQwait("ExtendedDesktopSize", this._FBU.bytes)) { return false; }
+
+            this._supportsSetDesktopSize = true;
+            var number_of_screens = this._sock.rQpeek8();
+
+            this._FBU.bytes = 4 + (number_of_screens * 16);
+            if (this._sock.rQwait("ExtendedDesktopSize", this._FBU.bytes)) { return false; }
+
+            this._sock.rQskipBytes(1);  // number-of-screens
+            this._sock.rQskipBytes(3);  // padding
+
+            for (var i=0; i<number_of_screens; i += 1) {
+                // Save the id and flags of the first screen
+                if (i == 0) {
+                    this._screen_id = this._sock.rQshiftBytes(4);    // id
+                    this._sock.rQskipBytes(2);                       // x-position
+                    this._sock.rQskipBytes(2);                       // y-position
+                    this._sock.rQskipBytes(2);                       // width
+                    this._sock.rQskipBytes(2);                       // height
+                    this._screen_flags = this._sock.rQshiftBytes(4); // flags
+                } else {
+                    this._sock.rQskipBytes(16);
+                }
+            }
+
+            /*
+             * The x-position indicates the reason for the change:
+             *
+             *  0 - server resized on its own
+             *  1 - this client requested the resize
+             *  2 - another client requested the resize
+             */
+
+            // We need to handle errors when we requested the resize.
+            if (this._FBU.x == 1 && this._FBU.y != 0) {
+                var msg = "";
+                // The y-position indicates the status code from the server
+                switch (this._FBU.y) {
+                case 1:
+                    msg = "Resize is administratively prohibited";
+                    break;
+                case 2:
+                    msg = "Out of resources";
+                    break;
+                case 3:
+                    msg = "Invalid screen layout";
+                    break;
+                default:
+                    msg = "Unknown reason";
+                    break;
+                }
+                Util.Info("Server did not accept the resize request: " + msg);
+                return true;
+            }
+
+            this._encHandlers.handle_FB_resize();
+            return true;
+        },
+
+        DesktopSize: function () {
+            this._encHandlers.handle_FB_resize();
             return true;
         },
 

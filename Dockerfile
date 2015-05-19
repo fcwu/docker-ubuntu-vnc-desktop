@@ -13,12 +13,15 @@ RUN apt-get update \
         libreoffice firefox \
         fonts-wqy-microhei \
         language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw \
+        nginx \
+        python-pip \
     && apt-get autoclean \
     && apt-get autoremove \
-    && rm -rf /var/lib/apt/lists/* 
+    && rm -rf /var/lib/apt/lists/*
 
 
 ADD noVNC /noVNC/
+ADD nginx.conf /etc/nginx/sites-enabled/default
 ADD startup.sh /
 ADD supervisord.conf /etc/
 EXPOSE 6080

@@ -1,0 +1,17 @@
+Flask==0.10.1
+Flask-Login==0.2.11
+Jinja2==2.7.3
+MarkupSafe==0.23
+Werkzeug==0.9.6
+argparse==1.2.1
+backports.ssl-match-hostname==3.4.0.2
+docker-py==0.5.3
+gevent==1.0.1
+gevent-websocket==0.9.3
+greenlet==0.4.5
+itsdangerous==0.24
+peewee==2.4.1
+requests==2.4.3
+six==1.8.0
+websocket-client==0.21.0
+wsgiref==0.1.2

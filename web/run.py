@@ -92,20 +92,11 @@ def main():
     create_instance_config()
 
     def run_server():
-        from gevent import monkey
-        monkey.patch_all(subprocess=True)
-        from gevent.wsgi import WSGIServer
         import socket
-        from geventwebsocket.handler import WebSocketHandler
 
         os.environ['CONFIG'] = CONFIG
         from lightop import app
 
-        if not DEBUG:  # run on NAS
-            from werkzeug import SharedDataMiddleware
-            app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
-                '/': os.path.join(os.path.dirname(__file__), 'static')
-                })
         # websocket conflict: WebSocketHandler
         if DEBUG or STAGING:
             # from werkzeug.debug import DebuggedApplication
@@ -123,9 +114,7 @@ def main():
 
         print('Running on port ' + str(PORT))
         try:
-            http_server = WSGIServer(('', PORT), app,
-                                     handler_class=WebSocketHandler)
-            http_server.serve_forever()
+            app.run(host='', port=PORT)
         except socket.error as e:
             print(e)
 
@@ -133,8 +122,9 @@ def main():
     STAGING = True if '--staging' in sys.argv else False
     CONFIG = 'config.Development' if DEBUG else 'config.Production'
     CONFIG = 'config.Staging' if STAGING else CONFIG
-    PORT = 6050
-    PROGRAMS = (('sudo nginx -c ${PWD}/nginx.conf'),)
+    PORT = 6079
+    PROGRAMS = tuple()
+    #PROGRAMS = (('sudo nginx -c ${PWD}/nginx.conf'),)
     #PROGRAMS = ('python lxc-monitor.py',
     #            'python docker-monitor.py')
     signal.signal(signal.SIGCHLD, signal.SIG_IGN)

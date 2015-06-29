@@ -11,4 +11,4 @@ echo "ubuntu:$PASS" | chpasswd
 
 cd /web && ./run.py > /var/log/web.log 2>&1 &
 nginx -c /etc/nginx/nginx.conf
-/usr/bin/supervisord -n
+exec /usr/bin/supervisord -n

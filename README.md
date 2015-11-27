@@ -22,7 +22,7 @@ Browse http://127.0.0.1:6080/vnc.html
 <img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png" width=400/>
 
 
-Trobleshooting
+Troubleshooting
 ==================
 
 1. boot2docker connection issue, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/2

@@ -1,5 +1,8 @@
-FROM ubuntu:14.04.2
+FROM ubuntu:14.04.3
 MAINTAINER Doro Wu <fcwu.tw@gmail.com>
+
+# cache
+RUN sed -i 's#http://archive.ubuntu.com/#http://qnap.dorowu.com/#' /etc/apt/sources.list
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /root
@@ -30,6 +33,7 @@ ADD noVNC /noVNC/
 ADD nginx.conf /etc/nginx/sites-enabled/default
 ADD startup.sh /
 ADD supervisord.conf /etc/supervisor/conf.d/
+ADD doro-lxde-wallpapers /usr/share/doro-lxde-wallpapers/
 
 EXPOSE 6080
 WORKDIR /root

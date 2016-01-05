@@ -35,28 +35,6 @@ var RFB;
         this._rfb_tightvnc = false;
         this._rfb_xvp_ver = 0;
 
-        // In preference order
-        this._encodings = [
-            ['COPYRECT',            0x01 ],
-            ['TIGHT',               0x07 ],
-            ['TIGHT_PNG',           -260 ],
-            ['HEXTILE',             0x05 ],
-            ['RRE',                 0x02 ],
-            ['RAW',                 0x00 ],
-            ['DesktopSize',         -223 ],
-            ['Cursor',              -239 ],
-
-            // Psuedo-encoding settings
-            //['JPEG_quality_lo',    -32 ],
-            ['JPEG_quality_med',     -26 ],
-            //['JPEG_quality_hi',    -23 ],
-            //['compress_lo',       -255 ],
-            ['compress_hi',         -247 ],
-            ['last_rect',           -224 ],
-            ['xvp',                 -309 ],
-            ['ExtendedDesktopSize', -308 ]
-        ];
-
         this._encHandlers = {};
         this._encNames = {};
         this._encStats = {};
@@ -131,7 +109,6 @@ var RFB;
             'wsProtocols': ['binary', 'base64'],    // Protocols to use in the WebSocket connection
             'repeaterID': '',                       // [UltraVNC] RepeaterID to connect to
             'viewportDrag': false,                  // Move the viewport on mouse drags
-
             // Callback functions
             'onUpdateState': function () { },       // onUpdateState(rfb, state, oldstate, statusMsg): state update/change
             'onPasswordRequired': function () { },  // onPasswordRequired(rfb): VNC password is required
@@ -143,6 +120,53 @@ var RFB;
             'onDesktopName': function () { },       // onDesktopName(rfb, name): desktop name received
             'onXvpInit': function () { },           // onXvpInit(version): XVP extensions active for this connection
         });
+
+        try{
+            // Use my custom 'jpeg_quality'.
+            this._encodings = [
+                // ['COPYRECT',            0x01 ],
+                ['TIGHT',               0x07 ],
+                ['TIGHT_PNG',           -260 ],
+                ['HEXTILE',             0x05 ],
+                ['RRE',                 0x02 ],
+                ['RAW',                 0x00 ],
+                ['DesktopSize',         -223 ],
+                ['Cursor',              -239 ],
+
+                // Psuedo-encoding settings
+                ['JPEG_quality_lo',    -32 + jpeg_quality ],
+                // ['JPEG_quality_med',     -28 ],
+                // ['JPEG_quality_hi',    -23 ],
+                // ['compress_lo',       -255 ],
+                ['compress_hi',         -247 ],
+                ['last_rect',           -224 ],
+                ['xvp',                 -309 ],
+                ['ExtendedDesktopSize', -308 ]
+            ];
+        }
+        catch(e){
+            // If my custom 'jpeg_quality' is not defined, just use default setting.
+            this._encodings = [
+                ['COPYRECT',            0x01 ],
+                ['TIGHT',               0x07 ],
+                ['TIGHT_PNG',           -260 ],
+                ['HEXTILE',             0x05 ],
+                ['RRE',                 0x02 ],
+                ['RAW',                 0x00 ],
+                ['DesktopSize',         -223 ],
+                ['Cursor',              -239 ],
+
+                // Psuedo-encoding settings
+                //['JPEG_quality_lo',    -32 ],
+                ['JPEG_quality_med',     -26 ],
+                //['JPEG_quality_hi',    -23 ],
+                //['compress_lo',       -255 ],
+                ['compress_hi',         -247 ],
+                ['last_rect',           -224 ],
+                ['xvp',                 -309 ],
+                ['ExtendedDesktopSize', -308 ]
+            ];
+        }
 
         // main setup
         Util.Debug(">> RFB.constructor");

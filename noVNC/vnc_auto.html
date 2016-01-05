@@ -35,6 +35,7 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="include/base.css" title="plain">
+    <link rel="stylesheet" href="custom.css" title="plain">
 
      <!--
     <script type='text/javascript'
@@ -45,7 +46,7 @@
 
 <body style="margin: 0px;">
     <div id="noVNC_screen">
-            <div id="noVNC_status_bar" class="noVNC_status_bar" style="margin-top: 0px; height: 0px;">
+            <div id="noVNC_status_bar" class="noVNC_status_bar" style="display: none;margin-top: 0px; height: 0px;">
                 <table border=0 width="100%"><tr>
                     <td><div id="noVNC_status" style="position: relative; height: auto;">
                         Loading
@@ -67,9 +68,26 @@
             <canvas id="noVNC_canvas" width="640px" height="20px">
                 Canvas not supported.
             </canvas>
+            <div id="custom_toolbar" class="custom_toolbar">
+                <div id="custom_toolbar_clicker" class="custom_toolbar_clicker"></div>
+                <div class="custom_toolbar_divider1"></div>
+                <div id="custom_toolbar_autoconnect_btn" class="custom_toolbar_btn"></div>
+                <div class="custom_toolbar_divider1"></div>
+                <div id="custom_toolbar_autoscale_btn" class="custom_toolbar_btn"></div>
+                <div class="custom_toolbar_divider1"></div>
+                <div id="custom_toolbar_quality_1_btn" class="custom_toolbar_btn"><div class="custom_quality_icon">L</div></div>
+                <div class="custom_toolbar_divider2"></div>
+                <div id="custom_toolbar_quality_2_btn" class="custom_toolbar_btn"><div class="custom_quality_icon">M</div></div>
+                <div class="custom_toolbar_divider2"></div>
+                <div id="custom_toolbar_quality_3_btn" class="custom_toolbar_btn"><div class="custom_quality_icon">H</div></div>
+                <div class="custom_toolbar_divider1"></div>
+            </div>
+            <div id="custom_mask" class="custom_mask"></div>
         </div>
 
-        <script>
+    </body>
+    <script src="media/js/jquery.js"></script>
+    <script>
         /*jslint white: false */
         /*global window, $, Util, RFB, */
         "use strict";
@@ -82,8 +100,212 @@
         var rfb;
         var resizeTimeout;
 
+        // Custom noVNC share varaibles.
+
+        var Scale = {x: 1.0, y: 1.0};       // share with "./include/util.js".
+
+        var jpeg_quality = 4;               // Share with "./include.rfb.js".
+
+        // Custom noVNC query parameters.
+
+        var autoconnect = 1;
+        var autoscale = 0;
+        var quality = 2;
+        var enablelog = 0;
+
+        // Custom toolbar click events.
+
+        $("#custom_toolbar_clicker").click(function(){
+            if (!$("#custom_toolbar").is(':animated')) {
+                if ($("#custom_toolbar" ).position().left < -10) {
+                    $("#custom_toolbar" ).animate({ left: "+=65", }, 500, function() {
+                        $("#custom_toolbar_clicker").css({"background-image": "url(images/pop_less.png)"});
+                    });
+                }
+                else {
+                    $("#custom_toolbar" ).animate({ left: "-=65", }, 500, function () {
+                        $("#custom_toolbar_clicker").css({"background-image": "url(images/pop_more.png)"});
+                    });
+                }
+            }
+        });
+
+        $("#custom_toolbar_autoconnect_btn").click(function(){
+            autoconnect = (autoconnect == 1) ? 0 : 1;
+            window.location = render_redirect_url();
+        });
+
+        $("#custom_toolbar_autoscale_btn").click(function(){
+            autoscale = (autoscale == 1) ? 0 : 1;
+            window.location = render_redirect_url();
+        });
+
+        $("#custom_toolbar_quality_1_btn").click(function(){
+            // low jpeg
+            quality = 1;
+            window.location = render_redirect_url();
+        });
+
+        $("#custom_toolbar_quality_2_btn").click(function(){
+            // mid jpeg
+            quality = 2;
+            window.location = render_redirect_url();
+        });
+
+        $("#custom_toolbar_quality_3_btn").click(function(){
+            // high jpeg
+            quality = 3;
+            window.location = render_redirect_url();
+        });
+
+        $(".custom_toolbar_btn").hover(
+            function() {
+                if (!$(this).hasClass("custom_toolbar_btn_hover_selected"))
+                    $(this).addClass("custom_toolbar_btn_hover");
+            }, function() {
+                $(this).removeClass("custom_toolbar_btn_hover");
+            }
+        );
+
+        // Custom functions
+
+        function mask_fadein () {
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            $("#custom_mask").css({"width": width.toString() + "px", "height": height.toString() + "px"});
+            $("#custom_mask").fadeIn();
+        }
+
+        function mask_fadeout () {
+            $("#custom_mask").fadeOut();
+        }
+
+        function render_redirect_url() {
+            var new_url = (window.location.href).toString().split("?")[0] + "?";
+
+            // noVNC orign query parameter
+
+            if (WebUtil.getQueryVar('resize', false)) {
+                new_url += "resize=" + WebUtil.getQueryVar('resize', "") + "&";
+            }
+            if (WebUtil.getQueryVar('logging', false)) {
+                new_url += "logging=" + WebUtil.getQueryVar('logging', "") + "&";
+            }
+            if (WebUtil.getQueryVar('title', false)) {
+                new_url += "title=" + WebUtil.getQueryVar('title', "") + "&";
+            }
+            if (WebUtil.getQueryVar('host', false)) {
+                new_url += "host=" + WebUtil.getQueryVar('host', "") + "&";
+            }
+            if (WebUtil.getQueryVar('port', false)) {
+                new_url += "port=" + WebUtil.getQueryVar('port', "") + "&";
+            }
+            if (WebUtil.getQueryVar('token', false)) {
+                new_url += "token=" + WebUtil.getQueryVar('token', "") + "&";
+            }
+            if (WebUtil.getQueryVar('password', false)) {
+                new_url += "password=" + WebUtil.getQueryVar('password', "") + "&";
+            }
+            if (WebUtil.getQueryVar('path', false)) {
+                new_url += "path=" + WebUtil.getQueryVar('path', "") + "&";
+            }
+            if (WebUtil.getQueryVar('encrypt', false)) {
+                new_url += "encrypt=" + WebUtil.getQueryVar('encrypt', "") + "&";
+            }
+            if (WebUtil.getQueryVar('repeaterID', false)) {
+                new_url += "repeaterID=" + WebUtil.getQueryVar('repeaterID', "") + "&";
+            }
+            if (WebUtil.getQueryVar('true_color', false)) {
+                new_url += "true_color=" + WebUtil.getQueryVar('true_color', "") + "&";
+            }
+            if (WebUtil.getQueryVar('cursor', false)) {
+                new_url += "cursor=" + WebUtil.getQueryVar('cursor', "") + "&";
+            }
+            if (WebUtil.getQueryVar('shared', false)) {
+                new_url += "shared=" + WebUtil.getQueryVar('shared', "") + "&";
+            }
+            if (WebUtil.getQueryVar('view_only', false)) {
+                new_url += "view_only=" + WebUtil.getQueryVar('view_only', "") + "&";
+            }
+
+            // custom query parameter
+
+            new_url += "autoconnect=" + autoconnect + "&";
+            new_url += "autoscale=" + autoscale + "&";
+            new_url += "quality=" + quality + "&";
+            if (WebUtil.getQueryVar('enablelog', false)) {
+                new_url += "enablelog=" + WebUtil.getQueryVar('enablelog', "") + "&";
+            }
+
+            return new_url;
+        }
+
+        function render_custom_toolbar() {
+
+            $("#custom_toolbar_autoconnect_btn").removeClass("custom_pause_icon");
+            $("#custom_toolbar_autoconnect_btn").removeClass("custom_resume_icon");
+            if (autoconnect == 1){
+                $("#custom_toolbar_autoconnect_btn").addClass("custom_pause_icon");
+            }
+            else {
+                $("#custom_toolbar_autoconnect_btn").addClass("custom_resume_icon");
+            }
+
+            $("#custom_toolbar_autoscale_btn").removeClass("custom_scale_icon");
+            $("#custom_toolbar_autoscale_btn").removeClass("custom_not_scale_icon");
+            if (autoscale == 1)
+                $("#custom_toolbar_autoscale_btn").addClass("custom_not_scale_icon");
+            else
+                $("#custom_toolbar_autoscale_btn").addClass("custom_scale_icon");
+
+            $("#custom_toolbar_quality_1_btn").removeClass("custom_toolbar_btn_selected");
+            $("#custom_toolbar_quality_2_btn").removeClass("custom_toolbar_btn_selected");
+            $("#custom_toolbar_quality_3_btn").removeClass("custom_toolbar_btn_selected");
+            if (quality == 1)
+                $("#custom_toolbar_quality_1_btn").addClass("custom_toolbar_btn_selected");
+            if (quality == 2)
+                $("#custom_toolbar_quality_2_btn").addClass("custom_toolbar_btn_selected");
+            if (quality == 3)
+                $("#custom_toolbar_quality_3_btn").addClass("custom_toolbar_btn_selected");
+
+            if (enablelog == 1) {
+                console.log("------------- Custom Toolbar Settings -------------");
+                console.log("autoconnect: " + autoconnect);
+                console.log("autoscale: " + autoscale);
+                console.log("quality: " + quality);
+                console.log("enablelog: " + enablelog);
+            }
+        }
+
+        function noVNC_autoscale() {
+            var scaleWidth = window.innerWidth;
+            var scaleHeight = window.innerHeight;
+
+            var originWidth = $("#noVNC_canvas").attr("width");
+            var originHeight = $("#noVNC_canvas").attr("height");
+
+            $("#noVNC_canvas").css({"width": scaleWidth.toString() + "px", "height": scaleHeight.toString() + "px"})
+
+            Scale.x = scaleWidth / originWidth;
+            Scale.y = scaleHeight / originHeight;
+
+            if (enablelog == 1) {
+                console.info("-------------- Resize Canvas --------------");
+                console.log("Origin Width: " + originWidth);
+                console.log("Origin Height: " + originHeight);
+                console.log("Scale Width: " + scaleWidth);
+                console.log("Scale Height: " + scaleHeight);
+                console.log("Scale.x: " + Scale.x);
+                console.log("Scale.y: " + Scale.y);
+            }
+        }
 
         function UIresize() {
+            // Enable autoscale if set 1.
+            if (autoscale == 1) {
+               noVNC_autoscale();
+            }
+
             if (WebUtil.getQueryVar('resize', false)) {
                 var innerW = window.innerWidth;
                 var innerH = window.innerHeight;
@@ -154,15 +376,6 @@
             }
         }
 
-        window.onresize = function () {
-            // When the window has been resized, wait until the size remains
-            // the same for 0.5 seconds before sending the request for changing
-            // the resolution of the session
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(function(){
-                UIresize();
-            }, 500);
-        };
 
         function xvpInit(ver) {
             var xvpbuttons;
@@ -173,8 +386,8 @@
                 xvpbuttons.style.display = 'none';
             }
         }
+        function connect_vnc() {
 
-        window.onscriptsload = function () {
             var host, port, password, path, token;
 
             $D('sendCtrlAltDelButton').style.display = "inline";
@@ -233,10 +446,64 @@
                 UI.updateState(null, 'fatal', null, 'Unable to create RFB client -- ' + exc);
                 return; // don't continue trying to connect
             }
+            if (enablelog == 1) {
+                console.log('------------- noVnc Connect info -------------');
+                console.log('Host: ' + (host).toString());
+                console.log('Port: ' + (port).toString());
+                console.log('Password: ' + (password).toString());
+                console.log('Path: ' + (path).toString());
+                console.log('Url: ' + (window.location.href).toString());
+            }
 
+            // Connect
             rfb.connect(host, port, password, path);
-        };
-        </script>
 
-    </body>
+            if (enablelog == 1) {
+                console.log('------------- noVnc RFB Stats -------------');
+                rfb._print_stats();
+            }
+
+            if (enablelog == 1) {
+                console.log('------------- noVnc RFB Encoding -------------');
+                console.log(rfb._encodings);
+            }
+        }
+
+        // Window events
+
+        window.onresize = function () {
+            // When the window has been resized, wait until the size remains
+            // the same for 0.5 seconds before sending the request for changing
+            // the resolution of the session
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function(){
+                UIresize();
+            }, 100);
+
+        };
+
+        window.onload = function () {
+            autoconnect = WebUtil.getQueryVar('autoconnect', 0);
+            autoscale = WebUtil.getQueryVar('autoscale', 0);
+            quality = WebUtil.getQueryVar('quality', 2);
+            enablelog = WebUtil.getQueryVar('enablelog', 0);
+
+            // Change quality will set image level to different level (0 ~ 9)
+            if (quality == 1)
+                jpeg_quality = 0;
+            if (quality == 2)
+                jpeg_quality = 4;
+            if (quality == 3)
+                jpeg_quality = 9;
+
+            // Render the toolbar when loaded.
+            render_custom_toolbar();
+
+            // Connect to VNC.
+            if (autoconnect == 1)
+                connect_vnc();
+        }
+
+    </script>
+
 </html>

@@ -468,7 +468,16 @@ Util.getEventPosition = function (e, obj, scale) {
     var realy = docY - pos.y;
     var x = Math.max(Math.min(realx, pos.width - 1), 0);
     var y = Math.max(Math.min(realy, pos.height - 1), 0);
-    return {'x': x / scale, 'y': y / scale, 'realx': realx / scale, 'realy': realy / scale};
+
+    try{
+        // Use my custom 'Scale' rate.
+        return {'x': x / Scale.x, 'y': y / Scale.y, 'realx': realx / Scale.x, 'realy': realy / Scale.y};
+    }
+    catch(e){
+        // If my custom 'Scale' is not defined, just use default 'scale'.
+        return {'x': x / scale, 'y': y / scale, 'realx': realx / scale, 'realy': realy / scale};
+    }
+
 };
 
 

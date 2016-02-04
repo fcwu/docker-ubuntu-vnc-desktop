@@ -1,6 +1,9 @@
 docker-ubuntu-vnc-desktop
 =========================
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)
+[![Docker Stars](https://img.shields.io/docker/stars/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)
+
 From Docker Index
 ```
 docker pull dorowu/ubuntu-desktop-lxde-vnc

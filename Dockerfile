@@ -4,8 +4,13 @@ MAINTAINER Doro Wu <fcwu.tw@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /root
 
+# built-in packages
 RUN apt-get update \
-    && apt-get install -y --force-yes --no-install-recommends supervisor \
+    && apt-get install -y --force-yes --no-install-recommends software-properties-common \
+    && add-apt-repository ppa:fcwu-tw/ppa \
+    && apt-get update \
+    && apt-get install -y --force-yes --no-install-recommends \
+        supervisor \
         openssh-server pwgen sudo vim-tiny \
         net-tools \
         lxde x11vnc xvfb \
@@ -20,12 +25,13 @@ RUN apt-get update \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
-ADD https://dl.dropboxusercontent.com/u/23905041/x11vnc_0.9.14-1.1ubuntu1_amd64.deb /tmp/
-ADD https://dl.dropboxusercontent.com/u/23905041/x11vnc-data_0.9.14-1.1ubuntu1_all.deb /tmp/
-RUN dpkg -i /tmp/x11vnc*.deb
-
 ADD web /web/
-RUN pip install -r /web/requirements.txt
+RUN pip install setuptools wheel && pip install -r /web/requirements.txt
+
+# tini for subreap                                   
+ENV TINI_VERSION v0.9.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
+RUN chmod +x /bin/tini
 
 ADD noVNC /noVNC/
 ADD nginx.conf /etc/nginx/sites-enabled/default

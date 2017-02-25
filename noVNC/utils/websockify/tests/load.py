@@ -8,9 +8,9 @@ given a sequence number. Any errors are reported and counted.
 
 import sys, os, select, random, time, optparse, logging
 sys.path.insert(0,os.path.join(os.path.dirname(__file__), ".."))
-from websockify.websocket import WebSocketServer, WebSocketRequestHandler
+from websockify.websockifyserver import WebSockifyServer, WebSockifyRequestHandler
 
-class WebSocketLoadServer(WebSocketServer):
+class WebSocketLoadServer(WebSockifyServer):
 
     recv_cnt = 0
     send_cnt = 0
@@ -18,10 +18,10 @@ class WebSocketLoadServer(WebSocketServer):
     def __init__(self, *args, **kwargs):
         self.delay = kwargs.pop('delay')
 
-        WebSocketServer.__init__(self, *args, **kwargs)
+        WebSockifyServer.__init__(self, *args, **kwargs)
 
 
-class WebSocketLoad(WebSocketRequestHandler):
+class WebSocketLoad(WebSockifyRequestHandler):
 
     max_packet_size = 10000
 
@@ -35,12 +35,10 @@ class WebSocketLoad(WebSocketRequestHandler):
         self.send_cnt = 0
         self.recv_cnt = 0
 
-        try:
-            self.responder(self.request)
-        except:
-            print "accumulated errors:", self.errors
-            self.errors = 0
-            raise
+        self.responder(self.request)
+
+        print "accumulated errors:", self.errors
+        self.errors = 0
 
     def responder(self, client):
         c_pend = 0
@@ -62,7 +60,7 @@ class WebSocketLoad(WebSocketRequestHandler):
                     print err
 
                 if closed:
-                    self.send_close()
+                    break
 
             now = time.time() * 1000
             if client in outs:

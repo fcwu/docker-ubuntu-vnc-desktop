@@ -1,6 +1,34 @@
 Changes
 =======
 
+0.8.0
+-----
+
+* Make websockify properly terminate children on SIGTERM (#226)
+* Remove logging in signal handlers (this can cause Python to hang under certain conditions) (#219)
+* Make it easier to log to a file (#205)
+* Add support for IPv6 addresses in tokens in the TokenFile token plugins (#197)
+* Improve auth plugin framework to enable better support for HTTP auth (#194, #201)
+* Fix bug in JSONTokenAPI token plugin (#192)
+* Fix a missing variable in the exception handler (#178)
+
+0.7.0
+-----
+
+* Python 3 support fixes (#140, #155, #159)
+* Generic token-parsing plugins support (#162)
+* Generic authentication plugins support (#172)
+* Fixed frame corruption on big-endian systems (#161)
+* Support heartbeats (via PING) and automatic responses to PONG (#169)
+* Automatically reject unmasked client frames by default (strict mode) (#174)
+* Automatically restart interrupted select calls (#175)
+* Make 'run' respect environment settings (including virtualenv) (#176)
+
+0.6.1 - May 11, 2015
+--------------------
+
+* **PATCH RELEASE**: Fixes a bug causing file_only to not be passed properly
+
 0.6.0 - Feb 18, 2014
 --------------------
 

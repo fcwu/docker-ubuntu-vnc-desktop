@@ -80,7 +80,7 @@ HTML_REDIRECT = '''<html><head>
         var port = window.location.port;
         if (!port)
             port = window.location.protocol[4] == 's' ? 443 : 80;
-        window.location.href = "vnc_auto.html?autoconnect=1&autoscale=0&quality=3";
+        window.location.href = "vnc.html?autoconnect=1&autoscale=0&quality=3";
     </script>
     <title>Page Redirection</title>
 </head><body></body></html>'''

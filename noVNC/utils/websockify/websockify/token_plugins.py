@@ -12,6 +12,10 @@ class ReadOnlyTokenFile(BasePlugin):
     # source is a token file with lines like
     #   token: host:port
     # or a directory of such files
+    def __init__(self, *args, **kwargs):
+        super(ReadOnlyTokenFile, self).__init__(*args, **kwargs)
+        self._targets = None
+
     def _load_targets(self):
         if os.path.isdir(self.source):
             cfg_files = [os.path.join(self.source, f) for
@@ -24,7 +28,7 @@ class ReadOnlyTokenFile(BasePlugin):
             for line in [l.strip() for l in open(f).readlines()]:
                 if line and not line.startswith('#'):
                     tok, target = line.split(': ')
-                    self._targets[tok] = target.strip().split(':')
+                    self._targets[tok] = target.strip().rsplit(':', 1)
 
     def lookup(self, token):
         if self._targets is None:
@@ -75,4 +79,5 @@ class JSONTokenApi(BaseTokenAPI):
     # should go
 
     def process_result(self, resp):
-        return (resp.json['host'], resp.json['port'])
+        resp_json = resp.json()
+        return (resp_json['host'], resp_json['port'])

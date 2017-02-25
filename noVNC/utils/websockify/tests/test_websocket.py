@@ -15,229 +15,172 @@
 #    under the License.
 
 """ Unit tests for websocket """
-import errno
-import os
-import logging
-import select
-import shutil
-import socket
-import ssl
-import stubout
-import sys
-import tempfile
 import unittest
-from ssl import SSLError
-from websockify import websocket as websocket
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from websockify import websocket
 
+class FakeSocket:
+    def __init__(self):
+        self.data = b''
 
-class MockConnection(object):
-    def __init__(self, path):
-        self.path = path
+    def send(self, buf):
+        self.data += buf
+        return len(buf)
 
-    def makefile(self, mode='r', bufsize=-1):
-        return open(self.path, mode, bufsize)
+class AcceptTestCase(unittest.TestCase):
+    def test_success(self):
+        ws = websocket.WebSocket()
+        sock = FakeSocket()
+        ws.accept(sock, {'upgrade': 'websocket',
+                         'Sec-WebSocket-Version': '13',
+                         'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
+        self.assertEqual(sock.data[:13], b'HTTP/1.1 101 ')
+        self.assertTrue(b'\r\nUpgrade: websocket\r\n' in sock.data)
+        self.assertTrue(b'\r\nConnection: Upgrade\r\n' in sock.data)
+        self.assertTrue(b'\r\nSec-WebSocket-Accept: pczpYSQsvE1vBpTQYjFQPcuoj6M=\r\n' in sock.data)
 
+    def test_bad_version(self):
+        ws = websocket.WebSocket()
+        sock = FakeSocket()
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket',
+                                 'Sec-WebSocket-Version': '5',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket',
+                                 'Sec-WebSocket-Version': '20',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
 
-class WebSocketTestCase(unittest.TestCase):
+    def test_bad_upgrade(self):
+        ws = websocket.WebSocket()
+        sock = FakeSocket()
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'Sec-WebSocket-Version': '13',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket2',
+                                 'Sec-WebSocket-Version': '13',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
 
-    def _init_logger(self, tmpdir):
-        name = 'websocket-unittest'
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.DEBUG)
-        logger.propagate = True
-        filename = "%s.log" % (name)
-        handler = logging.FileHandler(filename)
-        handler.setFormatter(logging.Formatter("%(message)s"))
-        logger.addHandler(handler)
+    def test_missing_key(self):
+        ws = websocket.WebSocket()
+        sock = FakeSocket()
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket',
+                                 'Sec-WebSocket-Version': '13'})
 
-    def setUp(self):
-        """Called automatically before each test."""
-        super(WebSocketTestCase, self).setUp()
-        self.stubs = stubout.StubOutForTesting()
-        # Temporary dir for test data
-        self.tmpdir = tempfile.mkdtemp()
-        # Put log somewhere persistent
-        self._init_logger('./')
-        # Mock this out cause it screws tests up
-        self.stubs.Set(os, 'chdir', lambda *args, **kwargs: None)
-        self.server = self._get_websockserver(daemon=True,
-                                              ssl_only=False)
-        self.soc = self.server.socket('localhost')
+    def test_protocol(self):
+        class ProtoSocket(websocket.WebSocket):
+            def select_subprotocol(self, protocol):
+                return 'gazonk'
 
-    def tearDown(self):
-        """Called automatically after each test."""
-        self.stubs.UnsetAll()
-        shutil.rmtree(self.tmpdir)
-        super(WebSocketTestCase, self).tearDown()
+        ws = ProtoSocket()
+        sock = FakeSocket()
+        ws.accept(sock, {'upgrade': 'websocket',
+                         'Sec-WebSocket-Version': '13',
+                         'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q==',
+                         'Sec-WebSocket-Protocol': 'foobar gazonk'})
+        self.assertEqual(sock.data[:13], b'HTTP/1.1 101 ')
+        self.assertTrue(b'\r\nSec-WebSocket-Protocol: gazonk\r\n' in sock.data)
 
-    def _get_websockserver(self, **kwargs):
-        return websocket.WebSocketServer(listen_host='localhost',
-                                         listen_port=80,
-                                         key=self.tmpdir,
-                                         web=self.tmpdir,
-                                         record=self.tmpdir,
-                                         **kwargs)        
+    def test_no_protocol(self):
+        ws = websocket.WebSocket()
+        sock = FakeSocket()
+        ws.accept(sock, {'upgrade': 'websocket',
+                         'Sec-WebSocket-Version': '13',
+                         'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q=='})
+        self.assertEqual(sock.data[:13], b'HTTP/1.1 101 ')
+        self.assertFalse(b'\r\nSec-WebSocket-Protocol:' in sock.data)
 
-    def _mock_os_open_oserror(self, file, flags):
-        raise OSError('')
+    def test_missing_protocol(self):
+        ws = websocket.WebSocket()
+        sock = FakeSocket()
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket',
+                                 'Sec-WebSocket-Version': '13',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q==',
+                                 'Sec-WebSocket-Protocol': 'foobar gazonk'})
 
-    def _mock_os_close_oserror(self, fd):
-        raise OSError('')
+    def test_protocol(self):
+        class ProtoSocket(websocket.WebSocket):
+            def select_subprotocol(self, protocol):
+                return 'oddball'
 
-    def _mock_os_close_oserror_EBADF(self, fd):
-        raise OSError(errno.EBADF, '')
+        ws = ProtoSocket()
+        sock = FakeSocket()
+        self.assertRaises(Exception, ws.accept,
+                          sock, {'upgrade': 'websocket',
+                                 'Sec-WebSocket-Version': '13',
+                                 'Sec-WebSocket-Key': 'DKURYVK9cRFul1vOZVA56Q==',
+                                 'Sec-WebSocket-Protocol': 'foobar gazonk'})
 
-    def _mock_socket(self, *args, **kwargs):
-        return self.soc
+class HyBiEncodeDecodeTestCase(unittest.TestCase):
+    def test_decode_hybi_text(self):
+        buf = b'\x81\x85\x37\xfa\x21\x3d\x7f\x9f\x4d\x51\x58'
+        ws = websocket.WebSocket()
+        res = ws._decode_hybi(buf)
 
-    def _mock_select(self, rlist, wlist, xlist, timeout=None):
-        return '_mock_select'
+        self.assertEqual(res['fin'], 1)
+        self.assertEqual(res['opcode'], 0x1)
+        self.assertEqual(res['masked'], True)
+        self.assertEqual(res['length'], len(buf))
+        self.assertEqual(res['payload'], b'Hello')
 
-    def _mock_select_exception(self, rlist, wlist, xlist, timeout=None):
-        raise Exception
+    def test_decode_hybi_binary(self):
+        buf = b'\x82\x04\x01\x02\x03\x04'
+        ws = websocket.WebSocket()
+        res = ws._decode_hybi(buf)
 
-    def _mock_select_keyboardinterrupt(self, rlist, wlist,
-                                       xlist, timeout=None):
-        raise KeyboardInterrupt
+        self.assertEqual(res['fin'], 1)
+        self.assertEqual(res['opcode'], 0x2)
+        self.assertEqual(res['length'], len(buf))
+        self.assertEqual(res['payload'], b'\x01\x02\x03\x04')
 
-    def _mock_select_systemexit(self, rlist, wlist, xlist, timeout=None):
-        sys.exit()
+    def test_decode_hybi_extended_16bit_binary(self):
+        data = (b'\x01\x02\x03\x04' * 65)  # len > 126 -- len == 260
+        buf = b'\x82\x7e\x01\x04' + data
+        ws = websocket.WebSocket()
+        res = ws._decode_hybi(buf)
 
-    def test_daemonize_error(self):
-        soc = self._get_websockserver(daemon=True, ssl_only=1, idle_timeout=1)
-        self.stubs.Set(os, 'fork', lambda *args: None)
-        self.stubs.Set(os, 'setsid', lambda *args: None)
-        self.stubs.Set(os, 'close', self._mock_os_close_oserror)
-        self.assertRaises(OSError, soc.daemonize, keepfd=None, chdir='./')
+        self.assertEqual(res['fin'], 1)
+        self.assertEqual(res['opcode'], 0x2)
+        self.assertEqual(res['length'], len(buf))
+        self.assertEqual(res['payload'], data)
 
-    def test_daemonize_EBADF_error(self):
-        soc = self._get_websockserver(daemon=True, ssl_only=1, idle_timeout=1)
-        self.stubs.Set(os, 'fork', lambda *args: None)
-        self.stubs.Set(os, 'setsid', lambda *args: None)
-        self.stubs.Set(os, 'close', self._mock_os_close_oserror_EBADF)
-        self.stubs.Set(os, 'open', self._mock_os_open_oserror)
-        self.assertRaises(OSError, soc.daemonize, keepfd=None, chdir='./')
+    def test_decode_hybi_extended_64bit_binary(self):
+        data = (b'\x01\x02\x03\x04' * 65)  # len > 126 -- len == 260
+        buf = b'\x82\x7f\x00\x00\x00\x00\x00\x00\x01\x04' + data
+        ws = websocket.WebSocket()
+        res = ws._decode_hybi(buf)
 
-    def test_decode_hybi(self):
-        soc = self._get_websockserver(daemon=False, ssl_only=1, idle_timeout=1)
-        self.assertRaises(Exception, soc.decode_hybi, 'a' * 128,
-                          base64=True)
+        self.assertEqual(res['fin'], 1)
+        self.assertEqual(res['opcode'], 0x2)
+        self.assertEqual(res['length'], len(buf))
+        self.assertEqual(res['payload'], data)
 
-    def test_do_websocket_handshake(self):
-        soc = self._get_websockserver(daemon=True, ssl_only=0, idle_timeout=1)
-        soc.scheme = 'scheme'
-        headers = {'Sec-WebSocket-Protocol': 'binary',
-                   'Sec-WebSocket-Version': '7',
-                   'Sec-WebSocket-Key': 'foo'}
-        soc.do_websocket_handshake(headers, '127.0.0.1')
+    def test_decode_hybi_multi(self):
+        buf1 = b'\x01\x03\x48\x65\x6c'
+        buf2 = b'\x80\x02\x6c\x6f'
 
-    def test_do_handshake(self):
-        soc = self._get_websockserver(daemon=True, ssl_only=0, idle_timeout=1)
-        self.stubs.Set(select, 'select', self._mock_select)
-        self.stubs.Set(socket._socketobject, 'recv', lambda *args: 'mock_recv')
-        self.assertRaises(Exception, soc.do_handshake, self.soc, '127.0.0.1')
+        ws = websocket.WebSocket()
 
-    def test_do_handshake_ssl_error(self):
-        soc = self._get_websockserver(daemon=True, ssl_only=0, idle_timeout=1)
+        res1 = ws._decode_hybi(buf1)
+        self.assertEqual(res1['fin'], 0)
+        self.assertEqual(res1['opcode'], 0x1)
+        self.assertEqual(res1['length'], len(buf1))
+        self.assertEqual(res1['payload'], b'Hel')
 
-        def _mock_wrap_socket(*args, **kwargs):
-            from ssl import SSLError
-            raise SSLError('unit test exception')
+        res2 = ws._decode_hybi(buf2)
+        self.assertEqual(res2['fin'], 1)
+        self.assertEqual(res2['opcode'], 0x0)
+        self.assertEqual(res2['length'], len(buf2))
+        self.assertEqual(res2['payload'], b'lo')
 
-        self.stubs.Set(select, 'select', self._mock_select)
-        self.stubs.Set(socket._socketobject, 'recv', lambda *args: '\x16')
-        self.stubs.Set(ssl, 'wrap_socket', _mock_wrap_socket)
-        self.assertRaises(SSLError, soc.do_handshake, self.soc, '127.0.0.1')
+    def test_encode_hybi_basic(self):
+        ws = websocket.WebSocket()
+        res = ws._encode_hybi(0x1, b'Hello')
+        expected = b'\x81\x05\x48\x65\x6c\x6c\x6f'
 
-    def test_fallback_SIGCHILD(self):
-        soc = self._get_websockserver(daemon=True, ssl_only=0, idle_timeout=1)
-        soc.fallback_SIGCHLD(None, None)
-
-    def test_start_server_Exception(self):
-        soc = self._get_websockserver(daemon=False, ssl_only=1, idle_timeout=1)
-        self.stubs.Set(websocket.WebSocketServer, 'socket', self._mock_socket)
-        self.stubs.Set(websocket.WebSocketServer, 'daemonize',
-                       lambda *args, **kwargs: None)
-        self.stubs.Set(select, 'select', self._mock_select_exception)
-        self.assertEqual(None, soc.start_server())
-
-    def test_start_server_KeyboardInterrupt(self):
-        soc = self._get_websockserver(daemon=False, ssl_only=1, idle_timeout=1)
-        self.stubs.Set(websocket.WebSocketServer, 'socket', self._mock_socket)
-        self.stubs.Set(websocket.WebSocketServer, 'daemonize',
-                       lambda *args, **kwargs: None)
-        self.stubs.Set(select, 'select', self._mock_select_keyboardinterrupt)
-        self.assertEqual(None, soc.start_server())
-
-    def test_start_server_systemexit(self):
-        websocket.ssl = None
-        self.stubs.Set(websocket.WebSocketServer, 'socket', self._mock_socket)
-        self.stubs.Set(websocket.WebSocketServer, 'daemonize',
-                       lambda *args, **kwargs: None)
-        self.stubs.Set(select, 'select', self._mock_select_systemexit)
-        soc = self._get_websockserver(daemon=True, ssl_only=0, idle_timeout=1,
-                                      verbose=True)
-        self.assertEqual(None, soc.start_server())
-
-    def test_WSRequestHandle_do_GET_nofile(self):
-        request = 'GET /tmp.txt HTTP/0.9'
-        with tempfile.NamedTemporaryFile() as test_file:
-            test_file.write(request)
-            test_file.flush()
-            test_file.seek(0)
-            con = MockConnection(test_file.name)
-            soc = websocket.WSRequestHandler(con, "127.0.0.1", file_only=True)
-            soc.path = ''
-            soc.headers = {'upgrade': ''}
-            self.stubs.Set(SimpleHTTPRequestHandler, 'send_response',
-                           lambda *args: None)
-            soc.do_GET()
-            self.assertEqual(404, soc.last_code)
-
-    def test_WSRequestHandle_do_GET_hidden_resource(self):
-        request = 'GET /tmp.txt HTTP/0.9'
-        with tempfile.NamedTemporaryFile() as test_file:
-            test_file.write(request)
-            test_file.flush()
-            test_file.seek(0)
-            con = MockConnection(test_file.name)
-            soc = websocket.WSRequestHandler(con, '127.0.0.1', no_parent=True)
-            soc.path = test_file.name + '?'
-            soc.headers = {'upgrade': ''}
-            soc.webroot = 'no match startswith'
-            self.stubs.Set(SimpleHTTPRequestHandler,
-                           'send_response',
-                           lambda *args: None)
-        soc.do_GET()
-        self.assertEqual(403, soc.last_code)
-
-    def testsocket_set_keepalive_options(self):
-        keepcnt = 12
-        keepidle = 34
-        keepintvl = 56
-
-        sock = self.server.socket('localhost',
-                                  tcp_keepcnt=keepcnt,
-                                  tcp_keepidle=keepidle,
-                                  tcp_keepintvl=keepintvl)
-
-        self.assertEqual(sock.getsockopt(socket.SOL_TCP,
-                                         socket.TCP_KEEPCNT), keepcnt)
-        self.assertEqual(sock.getsockopt(socket.SOL_TCP,
-                                         socket.TCP_KEEPIDLE), keepidle)
-        self.assertEqual(sock.getsockopt(socket.SOL_TCP,
-                                         socket.TCP_KEEPINTVL), keepintvl)
-
-        sock = self.server.socket('localhost',
-                                  tcp_keepalive=False,
-                                  tcp_keepcnt=keepcnt,
-                                  tcp_keepidle=keepidle,
-                                  tcp_keepintvl=keepintvl)
-
-        self.assertNotEqual(sock.getsockopt(socket.SOL_TCP,
-                                            socket.TCP_KEEPCNT), keepcnt)
-        self.assertNotEqual(sock.getsockopt(socket.SOL_TCP,
-                                            socket.TCP_KEEPIDLE), keepidle)
-        self.assertNotEqual(sock.getsockopt(socket.SOL_TCP,
-                                            socket.TCP_KEEPINTVL), keepintvl)
+        self.assertEqual(res, expected)

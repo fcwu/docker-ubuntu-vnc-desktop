@@ -5,8 +5,8 @@
 // Licensed under LGPL version 3 (see docs/LICENSE.LGPL-3)
 
 // Known to work with node 0.8.9
-// Requires node modules: ws, optimist and policyfile
-//     npm install ws optimist policyfile
+// Requires node modules: ws and optimist
+//     npm install ws optimist
 
 
 var argv = require('optimist').argv,
@@ -16,7 +16,6 @@ var argv = require('optimist').argv,
     url = require('url'),
     path = require('path'),
     fs = require('fs'),
-    policyfile = require('policyfile'),
 
     Buffer = require('buffer').Buffer,
     WebSocketServer = require('ws').Server,
@@ -42,11 +41,7 @@ new_client = function(client) {
     target.on('data', function(data) {
         //log("sending message: " + data);
         try {
-            if (client.protocol === 'base64') {
-                client.send(new Buffer(data).toString('base64'));
-            } else {
-                client.send(data,{binary: true});
-            }
+            client.send(data);
         } catch(e) {
             log("Client closed, cleaning up target");
             target.end();
@@ -64,11 +59,7 @@ new_client = function(client) {
 
     client.on('message', function(msg) {
         //log('got message: ' + msg);
-        if (client.protocol === 'base64') {
-            target.write(new Buffer(msg, 'base64'));
-        } else {
-            target.write(msg,'binary');
-        }
+        target.write(msg);
     });
     client.on('close', function(code, reason) {
         log('WebSocket client disconnected: ' + code + ' [' + reason + ']');
@@ -123,18 +114,6 @@ http_request = function (request, response) {
     });
 };
 
-// Select 'binary' or 'base64' subprotocol, preferring 'binary'
-selectProtocol = function(protocols, callback) {
-    if (protocols.indexOf('binary') >= 0) {
-        callback(true, 'binary');
-    } else if (protocols.indexOf('base64') >= 0) {
-        callback(true, 'base64');
-    } else {
-        console.log("Client must support 'binary' or 'base64' protocol");
-        callback(false);
-    }
-}
-
 // parse source and target arguments into parts
 try {
     source_arg = argv._[0].toString();
@@ -183,10 +162,6 @@ if (argv.cert) {
     webServer = http.createServer(http_request);
 }
 webServer.listen(source_port, function() {
-    wsServer = new WebSocketServer({server: webServer,
-                                    handleProtocols: selectProtocol});
+    wsServer = new WebSocketServer({server: webServer});
     wsServer.on('connection', new_client);
 });
-
-// Attach Flash policyfile answer service
-policyfile.createServer().listen(-1, webServer);

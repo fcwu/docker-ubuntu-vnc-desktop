@@ -4,6 +4,8 @@ MAINTAINER Doro Wu <fcwu.tw@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /home/ubuntu
 
+RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list
+
 # built-in packages
 RUN apt-get update \
     && apt-get install -y --force-yes --no-install-recommends software-properties-common curl \
@@ -28,21 +30,15 @@ RUN apt-get update \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
-ADD web /web/
-RUN pip install setuptools wheel && pip install -r /web/requirements.txt
 
 # tini for subreap                                   
 ENV TINI_VERSION v0.9.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
 
-ADD noVNC /noVNC/
-ADD nginx.conf /etc/nginx/sites-enabled/default
-ADD startup.sh /
-ADD supervisord.conf /etc/supervisor/conf.d/
-ADD doro-lxde-wallpapers /usr/share/doro-lxde-wallpapers/
-ADD gtkrc-2.0 /home/ubuntu/.gtkrc-2.0
+ADD image /
+RUN pip install setuptools wheel && pip install -r /usr/lib/web/requirements.txt
 
-EXPOSE 6080
+EXPOSE 80
 WORKDIR /root
 ENTRYPOINT ["/startup.sh"]

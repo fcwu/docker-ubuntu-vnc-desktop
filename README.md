@@ -17,10 +17,10 @@ docker build --rm -t dorowu/ubuntu-desktop-lxde-vnc docker-ubuntu-vnc-desktop
 
 Run
 ```
-docker run -i -t -p 6080:6080 dorowu/ubuntu-desktop-lxde-vnc
+docker run -it --rm -p 6080:80 dorowu/ubuntu-desktop-lxde-vnc
 ```
 
-Browse http://127.0.0.1:6080/vnc.html
+Browse http://127.0.0.1:6080/
 
 <img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png" width=400/>
 
@@ -34,4 +34,4 @@ Troubleshooting
 License
 ==================
 
-desktop-mirror is under the Apache 2.0 license. See the LICENSE file for details.
+See the LICENSE file for details.

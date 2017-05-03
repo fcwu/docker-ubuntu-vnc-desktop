@@ -17,7 +17,7 @@ docker run -it --rm -p 6080:80 dorowu/ubuntu-desktop-lxde-vnc
 
 Browse http://127.0.0.1:6080/
 
-<img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png" width=400/>
+<img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png?v1" width=700/>
 
 
 Connect with VNC Viewer and protect by VNC Password

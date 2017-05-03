@@ -112,7 +112,7 @@ def redirectme():
     # check all running
     for i in xrange(20):
         output = subprocess.check_output(r"supervisorctl status | grep RUNNING | wc -l", shell=True)
-        if output.strip() == "4":
+        if output.strip() == "6":
             FIRST = False
             return HTML_REDIRECT
         time.sleep(2)

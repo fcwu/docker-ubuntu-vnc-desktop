@@ -17,4 +17,4 @@ gtk-xft-antialias=1
 gtk-xft-hinting=1
 gtk-xft-hintstyle="hintslight"
 gtk-xft-rgba="rgb"
-include "/home/ubuntu/.gtkrc-2.0.mine"
+include "/root/.gtkrc-2.0.mine"

@@ -1,19 +1,18 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 MAINTAINER Doro Wu <fcwu.tw@gmail.com>
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV HOME /home/ubuntu
 
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list
 
 # built-in packages
 RUN apt-get update \
-    && apt-get install -y --force-yes --no-install-recommends software-properties-common curl \
-    && sudo sh -c "echo 'deb http://download.opensuse.org/repositories/home:/Horst3180/xUbuntu_16.04/ /' >> /etc/apt/sources.list.d/arc-theme.list" \
-    && curl -SL http://download.opensuse.org/repositories/home:Horst3180/xUbuntu_16.04/Release.key | sudo apt-key add - \
+    && apt-get install -y --no-install-recommends software-properties-common curl \
+    && sh -c "echo 'deb http://download.opensuse.org/repositories/home:/Horst3180/xUbuntu_16.04/ /' >> /etc/apt/sources.list.d/arc-theme.list" \
+    && curl -SL http://download.opensuse.org/repositories/home:Horst3180/xUbuntu_16.04/Release.key | apt-key add - \
     && add-apt-repository ppa:fcwu-tw/ppa \
     && apt-get update \
-    && apt-get install -y --force-yes --no-install-recommends \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated \
         supervisor \
         openssh-server pwgen sudo vim-tiny \
         net-tools \
@@ -26,6 +25,7 @@ RUN apt-get update \
         python-pip python-dev build-essential \
         mesa-utils libgl1-mesa-dri \
         gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine pinta arc-theme \
+        dbus-x11 x11-utils \
     && apt-get autoclean \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
@@ -41,4 +41,6 @@ RUN pip install setuptools wheel && pip install -r /usr/lib/web/requirements.txt
 
 EXPOSE 80
 WORKDIR /root
+ENV HOME=/home/ubuntu \
+    SHELL=/bin/bash
 ENTRYPOINT ["/startup.sh"]

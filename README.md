@@ -4,18 +4,13 @@ docker-ubuntu-vnc-desktop
 [![Docker Pulls](https://img.shields.io/docker/pulls/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)
 [![Docker Stars](https://img.shields.io/docker/stars/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)
 
-From Docker Index
-```
-docker pull dorowu/ubuntu-desktop-lxde-vnc
-```
+Docker image to provide HTML5 VNC interface to access Ubuntu 16.04 LXDE desktop environment.
 
-Build yourself
-```
-git clone https://github.com/fcwu/docker-ubuntu-vnc-desktop.git
-docker build --rm -t dorowu/ubuntu-desktop-lxde-vnc docker-ubuntu-vnc-desktop
-```
+Quick Start
+-------------------------
 
-Run
+Run the docker image and open port `6080`
+
 ```
 docker run -it --rm -p 6080:80 dorowu/ubuntu-desktop-lxde-vnc
 ```
@@ -26,7 +21,7 @@ Browse http://127.0.0.1:6080/
 
 
 Connect with VNC Viewer and protect by VNC Password
-==================
+------------------
 
 Forward VNC service port 5900 to host by
 

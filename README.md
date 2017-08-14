@@ -38,10 +38,11 @@ docker run -it --rm -p 6080:80 -p 5900:5900 -e VNC_PASSWORD=mypassword dorowu/ub
 A prompt will ask password either in the browser or vnc viewer.
 
 
-Troubleshooting
+Troubleshooting and FAQ
 ==================
 
 1. boot2docker connection issue, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/2
+2. Screen resolution is fitted to browser's window size when first connecting to the desktop. If you would like to change resolution, you have to re-create the container
 
 
 License

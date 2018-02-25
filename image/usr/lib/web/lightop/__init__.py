@@ -3,12 +3,18 @@ from flask import (Flask,
                    abort,
                    )
 import os
+import json
+from functools import wraps
+import subprocess
+import time
 
 
 # Flask app
-app = Flask(__name__,
-            static_folder='static', static_url_path='',
-            instance_relative_config=True)
+app = Flask(
+    __name__,
+    static_folder='static', static_url_path='',
+    instance_relative_config=True
+)
 CONFIG = os.environ.get('CONFIG') or 'config.Development'
 app.config.from_object('config.Default')
 app.config.from_object(CONFIG)
@@ -18,16 +24,8 @@ import logging
 from log.config import LoggingConfiguration
 LoggingConfiguration.set(
     logging.DEBUG if os.getenv('DEBUG') else logging.INFO,
-    'lightop.log', name='Web')
-
-
-import json
-from functools import wraps
-import subprocess
-import time
-
-
-FIRST = True
+    '/var/log/web.log'
+)
 
 
 def exception_to_json(func):
@@ -68,7 +66,8 @@ HTML_INDEX = '''<html><head>
         g = d.getElementsByTagName('body')[0],
         x = w.innerWidth || e.clientWidth || g.clientWidth,
         y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-        window.location.href = "redirect.html?width=" + x + "&height=" + (parseInt(y));
+        var url = "redirect.html?width=" + x + "&height=" + (parseInt(y));
+        window.location.href = url;
     </script>
     <title>Page Redirection</title>
 </head><body></body></html>'''
@@ -104,18 +103,28 @@ def redirectme():
         env['height'] = request.args['height']
 
     # sed
-    subprocess.check_call(r"sed -i 's#^command=/usr/bin/Xvfb.*$#command=/usr/bin/Xvfb :1 -screen 0 {width}x{height}x16#' /etc/supervisor/conf.d/supervisord.conf".format(**env),
-                          shell=True)
+    cmd = (
+        'sed -i \'s#'
+        '^command=/usr/bin/Xvfb.*$'
+        '#'
+        'command=/usr/bin/Xvfb :1 -screen 0 {width}x{height}x16'
+        '#\' /etc/supervisor/conf.d/supervisord.conf'
+    ).format(**env),
+    subprocess.check_call(cmd, shell=True)
     # supervisorctrl reload
-    subprocess.check_call(r"supervisorctl reload", shell=True)
+    subprocess.check_call(['supervisorctl', 'reload'])
 
     # check all running
-    for i in xrange(20):
-        output = subprocess.check_output(r"supervisorctl status | grep RUNNING | wc -l", shell=True)
-        if output.strip() == "6":
+    for i in range(40):
+        output = subprocess.check_output(['supervisorctl', 'status'])
+        for line in output.strip().split('\n'):
+            if line.find('RUNNING') < 0:
+                break
+        else:
             FIRST = False
             return HTML_REDIRECT
-        time.sleep(2)
+        time.sleep(1)
+        logging.info('wait services is ready...')
     abort(500, 'service is not ready, please restart container')
 
 

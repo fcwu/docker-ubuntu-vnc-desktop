@@ -1,7 +1,5 @@
 FROM ubuntu:16.04
-MAINTAINER Doro Wu <fcwu.tw@gmail.com>
-
-ENV DEBIAN_FRONTEND noninteractive
+LABEL maintainer="fcwu.tw@gmail.com"
 
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list
 
@@ -32,12 +30,13 @@ RUN apt-get update \
 
 
 # tini for subreap                                   
-ENV TINI_VERSION v0.9.0
+ARG TINI_VERSION=v0.9.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
 
+ADD image/usr/lib/web/requirements.txt /tmp/
+RUN pip install setuptools wheel && pip install -r /tmp/requirements.txt
 ADD image /
-RUN pip install setuptools wheel && pip install -r /usr/lib/web/requirements.txt
 
 EXPOSE 80
 WORKDIR /root

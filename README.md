@@ -38,6 +38,15 @@ docker run -it --rm -p 6080:80 -p 5900:5900 -e VNC_PASSWORD=mypassword dorowu/ub
 A prompt will ask password either in the browser or vnc viewer.
 
 
+Screen Resolution
+------------------
+
+Resolution of virtual desktop adapts browser window size when first connecting the server. You may choose a fixed resolution by passing `RESOLUTION` environment variable, for example
+
+```
+docker run -it --rm -p 6080:80 -e RESOLUTION=1920x1080 dorowu/ubuntu-desktop-lxde-vnc
+```
+
 Troubleshooting and FAQ
 ==================
 

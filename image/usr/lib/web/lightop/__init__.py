@@ -18,6 +18,8 @@ app = Flask(
 CONFIG = os.environ.get('CONFIG') or 'config.Development'
 app.config.from_object('config.Default')
 app.config.from_object(CONFIG)
+FIRST = 'RESOLUTION' not in os.environ
+
 
 # logging
 import logging

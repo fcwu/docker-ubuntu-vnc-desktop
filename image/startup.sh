@@ -14,6 +14,10 @@ if [ -n "$VNC_PASSWORD" ]; then
     export VNC_PASSWORD=
 fi
 
-cd /usr/lib/web && ./run.py > /var/log/web.log 2>&1 &
+if [ -n "$RESOLUTION" ]; then
+    sed -i "s/1024x768/$RESOLUTION/" /etc/supervisor/conf.d/supervisord.conf
+fi
+
+cd /usr/lib/web && ./run.py 2>&1 &
 nginx -c /etc/nginx/nginx.conf
 exec /bin/tini -- /usr/bin/supervisord -n

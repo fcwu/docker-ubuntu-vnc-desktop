@@ -3,7 +3,7 @@ docker-ubuntu-vnc-desktop
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)
 [![Docker Stars](https://img.shields.io/docker/stars/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)
-[![Buy Me a Coffee at ko-fi.com](https://az743702.vo.msecnd.net/cdn/kofi2.png?v=0)](https://ko-fi.com/A4602SFN')
+<a href="https://ko-fi.com/A4602SFN" target="_blank"><img src="https://az743702.vo.msecnd.net/cdn/kofi2.png" width="142" height="36"></a>
 
 Docker image to provide HTML5 VNC interface to access Ubuntu 16.04 LXDE desktop environment.
 

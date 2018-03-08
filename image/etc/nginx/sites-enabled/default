@@ -13,6 +13,10 @@ server {
         try_files $uri @proxy2;
     }
 
+    location ~ ^/api {
+        try_files $uri @proxy2;
+    }
+
     location = /redirect.html {
         try_files $uri @proxy2;
     }

@@ -91,6 +91,14 @@ def index():
     return HTML_INDEX
 
 
+@app.route('/api/status')
+def status():
+    global FIRST
+    return json.dumps({
+        'default_resolution': FIRST
+    })
+
+
 @app.route('/redirect.html')
 def redirectme():
     global FIRST

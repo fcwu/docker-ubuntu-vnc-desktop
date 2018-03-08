@@ -325,6 +325,15 @@
     <script src="core/util.js"></script>
     <script src="app/webutil.js"></script>
     <script src="app/ui.js"></script>
+    <script src="app/jquery-3.3.1.min.js"></script>
+    <script>
+        $.getJSON("api/status", function(data) {
+            console.log(data);
+            if (data["default_resolution"]) {
+                window.location.href = "/";
+            }
+        });
+    </script>
     <!-- end scripts -->
 
  </body>

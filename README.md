@@ -42,17 +42,26 @@ A prompt will ask password either in the browser or vnc viewer.
 Screen Resolution
 ------------------
 
-Resolution of virtual desktop adapts browser window size when first connecting the server. You may choose a fixed resolution by passing `RESOLUTION` environment variable, for example
+The Resolution of virtual desktop adapts browser window size when first connecting the server. You may choose a fixed resolution by passing `RESOLUTION` environment variable, for example
 
 ```
 docker run -it --rm -p 6080:80 -e RESOLUTION=1920x1080 dorowu/ubuntu-desktop-lxde-vnc
+```
+
+
+Default User
+------------------
+
+The default user is `root`. You may change the user and password respectively by `USER` and `PASSWORD` environment variable, for example,
+
+```
+docker run -it --rm -p 6080:80 -e USER=doro -e PASSWORD=password dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 Troubleshooting and FAQ
 ==================
 
 1. boot2docker connection issue, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/2
-2. Screen resolution is fitted to browser's window size when first connecting to the desktop. If you would like to change resolution, you have to re-create the container
 
 
 License

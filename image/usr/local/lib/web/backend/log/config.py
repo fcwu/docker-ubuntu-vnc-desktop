@@ -35,13 +35,13 @@ class ColoredFormatter(logging.Formatter):
 
 
 class LoggingConfiguration(object):
-    COLOR_FORMAT = "[%(asctime)s" + \
-                   "][%(threadName)-22s][%(levelname)s] %(message)s " + \
+    COLOR_FORMAT = "%(asctime)s" + \
+                   " %(levelname)s %(message)s " + \
                    "(" + BOLD_SEQ + "%(filename)s" + RESET_SEQ + ":%(lineno)d)"
-    NO_COLOR_FORMAT = "[%(asctime)s][%(threadName)-22s][%(levelname)s] " + \
+    NO_COLOR_FORMAT = "%(asctime)s %(levelname)s " + \
                       "%(message)s " + \
                       "(%(filename)s:%(lineno)d)"
-    FILE_FORMAT = "[%(asctime)s][%(threadName)-22s][%(levelname)s] " + \
+    FILE_FORMAT = "%(asctime)s %(levelname)s " + \
                   "%(message)s "
 
     @classmethod

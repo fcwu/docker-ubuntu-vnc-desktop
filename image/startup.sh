@@ -32,6 +32,9 @@ mkdir -p $HOME/.config/pcmanfm/LXDE/
 ln -sf /usr/local/share/doro-lxde-wallpapers/desktop-items-0.conf $HOME/.config/pcmanfm/LXDE/
 chown -R $USER:$USER $HOME
 
+# nginx
+sed -i 's#worker_processes .*#worker_processes 1;#' /etc/nginx/nginx.conf
+
 # clearup
 PASSWORD=
 

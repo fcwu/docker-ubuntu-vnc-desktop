@@ -73,7 +73,7 @@ def main():
         import socket
 
         os.environ['CONFIG'] = CONFIG
-        from lightop import app
+        from vnc import app
 
         # websocket conflict: WebSocketHandler
         if DEBUG or STAGING:
@@ -81,16 +81,11 @@ def main():
             app.debug = True
             # app = DebuggedApplication(app, evalex=True)
 
-        print('Fork monitor programs')
         pgid = os.getpgid(0)
-        procs = []
-        procs.extend([subprocess.Popen(program, close_fds=True, shell=True)
-                      for program in PROGRAMS])
         signal.signal(signal.SIGTERM, lambda *args: killpg(pgid))
         signal.signal(signal.SIGHUP, lambda *args: killpg(pgid))
         signal.signal(signal.SIGINT, lambda *args: killpg(pgid))
 
-        print('Running on port ' + str(PORT))
         try:
             app.run(host='', port=PORT)
         except socket.error as e:
@@ -101,7 +96,6 @@ def main():
     CONFIG = 'config.Development' if DEBUG else 'config.Production'
     CONFIG = 'config.Staging' if STAGING else CONFIG
     PORT = 6079
-    PROGRAMS = tuple()
     signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
     if DEBUG or STAGING:

@@ -10,11 +10,7 @@ import time
 
 
 # Flask app
-app = Flask(
-    __name__,
-    static_folder='static', static_url_path='',
-    instance_relative_config=True
-)
+app = Flask('novnc2')
 CONFIG = os.environ.get('CONFIG') or 'config.Development'
 app.config.from_object('config.Default')
 app.config.from_object(CONFIG)

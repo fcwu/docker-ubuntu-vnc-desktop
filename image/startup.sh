@@ -22,19 +22,17 @@ if [ "$USER" != "root" ]; then
     fi
     HOME=/home/$USER
     echo "$USER:$PASSWORD" | chpasswd
-    cp -r /root/.gtkrc-2.0 ${HOME}
+    cp -r /root/.* ${HOME}
 fi
 sed -i "s|%USER%|$USER|" /etc/supervisor/conf.d/supervisord.conf
 sed -i "s|%HOME%|$HOME|" /etc/supervisor/conf.d/supervisord.conf
 
 # home folder
 mkdir -p $HOME/.config/pcmanfm/LXDE/
-ln -sf /usr/share/doro-lxde-wallpapers/desktop-items-0.conf $HOME/.config/pcmanfm/LXDE/
+ln -sf /usr/local/share/doro-lxde-wallpapers/desktop-items-0.conf $HOME/.config/pcmanfm/LXDE/
 chown -R $USER:$USER $HOME
 
 # clearup
 PASSWORD=
 
-cd /usr/lib/web && ./run.py 2>&1 &
-nginx -c /etc/nginx/nginx.conf
 exec /bin/tini -- /usr/bin/supervisord -n

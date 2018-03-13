@@ -115,14 +115,14 @@ def redirectme():
     # sed
     cmd = (
         'sed -i \'s#'
-        '^command=/usr/bin/Xvfb.*$'
+        '^exec /usr/bin/Xvfb.*$'
         '#'
-        'command=/usr/bin/Xvfb :1 -screen 0 {width}x{height}x16'
-        '#\' /etc/supervisor/conf.d/supervisord.conf'
+        'exec /usr/bin/Xvfb :1 -screen 0 {width}x{height}x16'
+        '#\' /usr/local/bin/xvfb.sh'
     ).format(**env),
     subprocess.check_call(cmd, shell=True)
     # supervisorctrl reload
-    subprocess.check_call(['supervisorctl', 'reload'])
+    subprocess.check_call(['supervisorctl', 'restart', 'x:'])
 
     # check all running
     for i in range(40):

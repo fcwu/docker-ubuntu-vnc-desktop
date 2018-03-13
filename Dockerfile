@@ -34,7 +34,11 @@ ARG TINI_VERSION=v0.9.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
 
-ADD image/usr/lib/web/requirements.txt /tmp/
+# ffmpeg
+RUN mkdir -p /usr/local/ffmpeg \
+    && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
+
+ADD image/usr/local/lib/web/requirements.txt /tmp/
 RUN pip install setuptools wheel && pip install -r /tmp/requirements.txt
 ADD image /
 

@@ -1,0 +1,83 @@
+<html>
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>video</title>
+    <style>
+        body {
+            margin: 0px;
+        }
+
+        .mainContainer {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .centeredVideo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: left;
+        }
+
+        .controls {
+            display: block;
+            width: 100%;
+            text-align: left;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="mainContainer" class="mainContainer">
+        <video name="videoElement" class="centeredVideo" autoplay width="1024" height="576">
+            Your browser is too old which doesn't support HTML5 video.
+        </video>
+        <br>
+    </div>
+
+    <script src="scripts/flv.min.js"></script>
+    <script src="scripts/jquery-3.3.1.min.js"></script>
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) {
+                url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        $("#mainContainer").css("width", getParameterByName("width"));
+        $("#mainContainer").css("height", getParameterByName("height"));
+        var url = "../api/live.flv";
+
+        var flvPlayer;
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+              //flv_load();
+              var videoElement = document.getElementsByName('videoElement')[0];
+              flvPlayer = flvjs.createPlayer({
+                  type: 'flv',
+                  url: url,
+                  isLive: true,
+                  withCredentials: true
+              }, {isLive: true, enableStashBuffer: false});
+              flvPlayer.attachMediaElement(videoElement);
+              flvPlayer.load();
+              flvPlayer.play();
+              flvPlayer.on("error", function() {
+                window.location.reload();
+              });
+            } catch (e) {
+              console.log(e);
+            }
+        });
+    </script>
+</body>
+</html>

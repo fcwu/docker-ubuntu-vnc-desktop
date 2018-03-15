@@ -72,7 +72,6 @@ The Resolution of virtual desktop adapts browser window size when first connecti
 docker run -p 6080:80 -e RESOLUTION=1920x1080 dorowu/ubuntu-desktop-lxde-vnc
 ```
 
-
 Default Desktop User
 --------------------
 
@@ -81,6 +80,30 @@ The default user is `root`. You may change the user and password respectively by
 ```
 docker run -p 6080:80 -e USER=doro -e PASSWORD=password dorowu/ubuntu-desktop-lxde-vnc
 ```
+
+Sound (Preview version and Linux only)
+-------------------
+
+It only works in Linux. 
+
+First of all, insert kernel module `snd-aloop` and specify `2` as the index of sound loop device
+
+```
+sudo modprobe snd-aloop index=2
+```
+
+Start the container
+
+```
+docker run -it --rm -p 6080:80 --device /dev/snd -e ALSADEV=hw:2,0 dorowu/ubuntu-desktop-lxde-vnc
+```
+
+where `--device /dev/snd -e ALSADEV=hw:2,0` means to grant sound device to container and set basic ASLA config to use card 2.
+
+Launch a browser with URL http://127.0.0.1:6080/#/?video, where `video` means to start with video mode. Now you can start Chromium in start menu (Internet -> Chromium Web Browser Sound) and try to play some video.
+
+[![demo](http://img.youtube.com/vi/Kv9FGClP1-k/0.jpg)](http://www.youtube.com/watch?v=Kv9FGClP1-k)
+
 
 Troubleshooting and FAQ
 ==================

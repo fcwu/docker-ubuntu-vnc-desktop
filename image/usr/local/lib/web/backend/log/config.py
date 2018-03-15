@@ -4,16 +4,16 @@ import logging
 import logging.handlers
 
 
-#The terminal has 8 colors with codes from 0 to 7
+# The terminal has 8 colors with codes from 0 to 7
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
-#These are the sequences need to get colored ouput
+# These are the sequences need to get colored ouput
 RESET_SEQ = "\033[0m"
 COLOR_SEQ = "\033[1;%dm"
 BOLD_SEQ = "\033[1m"
 
-#The background is set with 40 plus the number of the color,
-#and the foreground with 30
+# The background is set with 40 plus the number of the color,
+# and the foreground with 30
 COLORS = {
     'WARNING':  COLOR_SEQ % (30 + YELLOW) + 'WARN ' + RESET_SEQ,
     'INFO':     COLOR_SEQ % (30 + WHITE) + 'INFO ' + RESET_SEQ,
@@ -64,18 +64,19 @@ class LoggingConfiguration(object):
 
         # Log to rotating file
         try:
-            fh = logging.handlers.RotatingFileHandler(log_filename,
-                                                      mode='a+',
-                                                      backupCount=3)
-            fh = logging.FileHandler(log_filename, mode='a+')
+            fh = logging.handlers.RotatingFileHandler(
+                log_filename,
+                mode='a+',
+                backupCount=3
+            )
             fh.setFormatter(ColoredFormatter(FILE_FORMAT, False))
             fh.setLevel(log_level)
             logger.addHandler(fh)
             if not append:
                 # Create a new log file on every new
                 fh.doRollover()
-        except:
-            pass
+        except IOError as e:
+            print('ignore to log to {}: {}'.format(log_filename, e))
 
         # Log to sys.stderr using log level passed through command line
         if log_level != logging.NOTSET:

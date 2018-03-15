@@ -1,0 +1,4 @@
+pcm.loop {
+    type plug
+    slave.pcm "hw:Loopback,2,0"
+}

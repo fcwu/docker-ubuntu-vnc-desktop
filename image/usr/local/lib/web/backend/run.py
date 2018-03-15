@@ -1,108 +1,120 @@
 #!/usr/bin/env python
-
+from __future__ import (
+    absolute_import, division, print_function, with_statement
+)
 import os
 import time
 import sys
 import subprocess
-import signal
-
-
-def run_with_reloader(main_func, extra_files=None, interval=1):
-    """Run the given function in an independent python interpreter."""
-    def find_files(directory="./"):
-        for root, dirs, files in os.walk(directory):
-            for basename in files:
-                if basename.endswith('.py'):
-                    filename = os.path.join(root, basename)
-                    yield filename
-
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-        try:
-            os.setpgid(0, 0)
-            main_func()
-        except KeyboardInterrupt:
-            pass
-        return
-
-    procs = None
-    try:
-        while True:
-            print('* Restarting with reloader ' + str(sys.executable))
-            args = [sys.executable] + sys.argv
-            new_environ = os.environ.copy()
-            new_environ['WERKZEUG_RUN_MAIN'] = 'true'
-
-            procs = subprocess.Popen(args, env=new_environ)
-            mtimes = {}
-            restart = False
-            while not restart:
-                for filename in find_files():
-                    try:
-                        mtime = os.stat(filename).st_mtime
-                    except OSError:
-                        continue
-
-                    old_time = mtimes.get(filename)
-                    if old_time is None:
-                        mtimes[filename] = mtime
-                        continue
-                    elif mtime > old_time:
-                        print('* Detected change in %r, reloading' % filename)
-                        restart = True
-                        break
-                    time.sleep(interval)
-
-            killpg(procs.pid, signal.SIGTERM)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        killpg(procs.pid, signal.SIGTERM)
-
-
-def killpg(pgid, send_signal=signal.SIGKILL):
-    print('kill PGID {}'.format(pgid))
-    try:
-        os.killpg(pgid, send_signal)
-        #os.killpg(pgid, signal.SIGKILL)
-    except:
-        pass
+from vnc.util import ignored
 
 
 def main():
+    def run_with_reloader(main_func, extra_files=None, interval=3):
+        """Run the given function in an independent python interpreter."""
+        def find_files(directory="./"):
+            for root, dirs, files in os.walk(directory):
+                for basename in files:
+                    if basename.endswith('.py'):
+                        filename = os.path.join(root, basename)
+                        yield filename
+
+        if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+            try:
+                main_func()
+            except KeyboardInterrupt:
+                pass
+            return
+
+        proc = None
+        try:
+            while True:
+                log.info('Restarting with reloader {} {}'.format(
+                    sys.executable,
+                    ' '.join(sys.argv))
+                )
+                args = [sys.executable] + sys.argv
+                new_environ = os.environ.copy()
+                new_environ['WERKZEUG_RUN_MAIN'] = 'true'
+
+                proc = subprocess.Popen(
+                    args,
+                    env=new_environ,
+                    close_fds=True,
+                    preexec_fn=os.setsid
+                )
+                mtimes = {}
+                restart = False
+                while not restart:
+                    for filename in find_files():
+                        try:
+                            mtime = os.stat(filename).st_mtime
+                        except OSError:
+                            continue
+
+                        old_time = mtimes.get(filename)
+                        if old_time is None:
+                            mtimes[filename] = mtime
+                            continue
+                        elif mtime > old_time:
+                            log.info(
+                                'Detected change in {}, reloading'.format(
+                                    filename
+                                )
+                            )
+                            restart = True
+                            proc.terminate()
+                            break
+                    time.sleep(interval)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            with ignored(Exception):
+                proc.terminate()
+
     def run_server():
         import socket
-
-        os.environ['CONFIG'] = CONFIG
-        from vnc import app
+        from gevent.wsgi import WSGIServer
+        from vnc.app import app
 
         # websocket conflict: WebSocketHandler
-        if DEBUG or STAGING:
+        if DEBUG:
             # from werkzeug.debug import DebuggedApplication
             app.debug = True
             # app = DebuggedApplication(app, evalex=True)
 
-        pgid = os.getpgid(0)
-        signal.signal(signal.SIGTERM, lambda *args: killpg(pgid))
-        signal.signal(signal.SIGHUP, lambda *args: killpg(pgid))
-        signal.signal(signal.SIGINT, lambda *args: killpg(pgid))
-
         try:
-            app.run(host='', port=PORT)
+            log.info('Listening on http://localhost:{}'.format(PORT))
+            http_server = WSGIServer(('localhost', PORT), app)
+            http_server.serve_forever()
+            # app.run(host='localhost', port=PORT)
         except socket.error as e:
-            print(e)
+            log.exception(e)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            http_server.stop(timeout=10)
+            log.info('shutdown gracefully')
 
-    DEBUG = True if '--debug' in sys.argv else False
-    STAGING = True if '--staging' in sys.argv else False
-    CONFIG = 'config.Development' if DEBUG else 'config.Production'
-    CONFIG = 'config.Staging' if STAGING else CONFIG
     PORT = 6079
-    signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+    DEBUG = False
+    os.environ['CONFIG'] = 'config.Production'
+    entrypoint = run_server
+    if '--debug' in sys.argv:
+        DEBUG = True
+        os.environ['CONFIG'] = 'config.Development'
+        entrypoint = lambda: run_with_reloader(run_server)
 
-    if DEBUG or STAGING:
-        main = lambda: run_with_reloader(run_server)
-    else:
-        main = run_server
-    main()
+    # logging
+    import logging
+    from log.config import LoggingConfiguration
+    LoggingConfiguration.set(
+        logging.DEBUG if DEBUG else logging.INFO,
+        '/var/log/web.log'
+    )
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
+    log = logging.getLogger('novnc2')
+    entrypoint()
 
 
 if __name__ == "__main__":

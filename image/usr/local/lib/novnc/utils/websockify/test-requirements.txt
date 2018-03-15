@@ -1,2 +1,0 @@
-mox3
-nose

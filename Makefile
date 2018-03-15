@@ -4,7 +4,7 @@ REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 
 build:
-	docker build -t $(REPO):$(TAG) .
+	docker build -t $(REPO):$(TAG) --build-arg localbuild=1 .
 
 run:
 	docker run --rm \
@@ -13,8 +13,8 @@ run:
 		-e USER=doro -e PASSWORD=mypassword \
 		-e ALSADEV=hw:2,0 \
 		-e SSL_PORT=443 \
-		-e HTTP_PASSWORD=mypassword \
 		-v ${PWD}/ssl:/etc/nginx/ssl \
+		--device /dev/snd \
 		--name ubuntu-desktop-lxde-test \
 		$(REPO):$(TAG)
 

@@ -10,26 +10,21 @@ server {
     #_HTTP_PASSWORD_#auth_basic "Private Property";
     #_HTTP_PASSWORD_#auth_basic_user_file /etc/nginx/.htpasswd;
 
-	root /usr/share/nginx/html;
+	root /usr/local/lib/web/frontend/;
 	index index.html index.htm;
 
-    location / {
-        try_files $uri @proxy;
-    }
-
-    location = / {
-        try_files $uri @proxy2;
-    }
-
     location ~ ^/api {
-        try_files $uri @proxy2;
+        try_files $uri @api;
     }
 
-    location = /redirect.html {
-        try_files $uri @proxy2;
+    location = /websockify {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_pass http://127.0.0.1:6081;
     }
 
-    location @proxy2 {
+    location @api {
         proxy_set_header X-Real-IP  $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header Host $host;
@@ -43,12 +38,5 @@ server {
         proxy_set_header Host $host;
         proxy_pass http://127.0.0.1:6081;
         max_ranges 0;
-    }
-
-    location = /websockify {
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_pass http://127.0.0.1:6081;
     }
 }

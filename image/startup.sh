@@ -23,7 +23,8 @@ if [ "$USER" != "root" ]; then
     fi
     HOME=/home/$USER
     echo "$USER:$PASSWORD" | chpasswd
-    cp -r /root/.* ${HOME}
+    cp -r /root/{.gtkrc-2.0,.asoundrc} ${HOME}
+    [ -d "/dev/snd" ] && chgrp -R adm /dev/snd
 fi
 sed -i "s|%USER%|$USER|" /etc/supervisor/conf.d/supervisord.conf
 sed -i "s|%HOME%|$HOME|" /etc/supervisor/conf.d/supervisord.conf
@@ -49,6 +50,10 @@ if [ -n "$HTTP_PASSWORD" ]; then
     htpasswd -bc /etc/nginx/.htpasswd $USER $HTTP_PASSWORD
 	sed -i 's|#_HTTP_PASSWORD_#||' /etc/nginx/sites-enabled/default
 fi
+
+# novnc websockify
+ln -s /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify
+chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 # clearup
 PASSWORD=

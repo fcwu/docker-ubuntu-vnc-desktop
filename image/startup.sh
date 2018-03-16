@@ -15,9 +15,10 @@ fi
 USER=${USER:-root}
 HOME=/root
 if [ "$USER" != "root" ]; then
+    echo "* enable custom user: $USER"
     useradd --create-home --shell /bin/bash --user-group --groups adm,sudo $USER
     if [ -z "$PASSWORD" ]; then
-        echo set default password to \"ubuntu\"
+        echo "  set default password to \"ubuntu\""
         PASSWORD=ubuntu
     fi
     HOME=/home/$USER
@@ -32,10 +33,25 @@ mkdir -p $HOME/.config/pcmanfm/LXDE/
 ln -sf /usr/local/share/doro-lxde-wallpapers/desktop-items-0.conf $HOME/.config/pcmanfm/LXDE/
 chown -R $USER:$USER $HOME
 
-# nginx
-sed -i 's#worker_processes .*#worker_processes 1;#' /etc/nginx/nginx.conf
+# nginx workers
+sed -i 's|worker_processes .*|worker_processes 1;|' /etc/nginx/nginx.conf
+
+# nginx ssl
+if [ -n "$SSL_PORT" ] && [ -e "/etc/nginx/ssl/nginx.key" ]; then
+    echo "* enable SSL"
+	sed -i 's|#_SSL_PORT_#\(.*\)443\(.*\)|\1'$SSL_PORT'\2|' /etc/nginx/sites-enabled/default
+	sed -i 's|#_SSL_PORT_#||' /etc/nginx/sites-enabled/default
+fi
+
+# nginx http base authentication
+if [ -n "$HTTP_PASSWORD" ]; then
+    echo "* enable HTTP base authentication"
+    htpasswd -bc /etc/nginx/.htpasswd $USER $HTTP_PASSWORD
+	sed -i 's|#_HTTP_PASSWORD_#||' /etc/nginx/sites-enabled/default
+fi
 
 # clearup
 PASSWORD=
+HTTP_PASSWORD=
 
-exec /bin/tini -- /usr/bin/supervisord -n
+exec /bin/tini -- /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

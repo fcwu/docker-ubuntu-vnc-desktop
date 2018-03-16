@@ -5,7 +5,7 @@ RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/ap
 
 # built-in packages
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common curl \
+    && apt-get install -y --no-install-recommends software-properties-common curl apache2-utils \
     && add-apt-repository ppa:fcwu-tw/apps \
     && apt-get update \
     && apt-get install -y --no-install-recommends --allow-unauthenticated \

@@ -1,6 +1,14 @@
 server {
 	listen 80 default_server;
-#listen [::]:6080 default_server ipv6only=on;
+    # listen [::]:80 default_server ipv6only=on;
+
+    #_SSL_PORT_#listen 443 ssl default_server;
+    #_SSL_PORT_#listen [::]:443 ssl default_server ipv6only=on;
+    #_SSL_PORT_#ssl_certificate /etc/nginx/ssl/nginx.crt;
+    #_SSL_PORT_#ssl_certificate_key /etc/nginx/ssl/nginx.key;
+
+    #_HTTP_PASSWORD_#auth_basic "Private Property";
+    #_HTTP_PASSWORD_#auth_basic_user_file /etc/nginx/.htpasswd;
 
 	root /usr/share/nginx/html;
 	index index.html index.htm;

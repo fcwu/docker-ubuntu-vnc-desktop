@@ -333,17 +333,24 @@
         <source src="novnc/app/sounds/bell.mp3" type="audio/mpeg">
     </audio>
     <script type="module">
-        import UI from './novnc/app/ui.js';
-        UI.rfb.addEventListener('connect', function(event) {
-          window.parent.postMessage(JSON.stringify({from: 'novnc', state: 'connected'}), '*');
-          UI.rfb._display.defaultCursor();
-          // console.log(UI.connected)
-          // console.log(event);
-        });
-        UI.rfb.addEventListener('disconnect', function(event) {
-          window.parent.postMessage(JSON.stringify({from: 'novnc', state: 'disconnected'}), '*');
-        });
-        // console.log(UI.rfb._rfb_connection_state);
+      import UI from './novnc/app/ui.js';
+      var f = function () {
+        if (!UI.rfb) {
+          setTimeout(f, 1000);
+        } else {
+          UI.rfb.addEventListener('connect', function(event) {
+            window.parent.postMessage(JSON.stringify({from: 'novnc', state: 'connectedd'}), '*');
+            UI.rfb._display.defaultCursor();
+            // console.log(UI.connected)
+            // console.log(event);
+          });
+          UI.rfb.addEventListener('disconnect', function(event) {
+            window.parent.postMessage(JSON.stringify({from: 'novnc', state: 'disconneccted'}), '*');
+          });
+          // console.log(UI.rfb._rfb_connection_state);
+        }
+      };
+      f();
     </script>
  </body>
 </html>

@@ -102,7 +102,9 @@ where `--device /dev/snd -e ALSADEV=hw:2,0` means to grant sound device to conta
 
 Launch a browser with URL http://127.0.0.1:6080/#/?video, where `video` means to start with video mode. Now you can start Chromium in start menu (Internet -> Chromium Web Browser Sound) and try to play some video.
 
-[![demo](http://img.youtube.com/vi/Kv9FGClP1-k/0.jpg)](http://www.youtube.com/watch?v=Kv9FGClP1-k)
+Following is the screen capture of these operations. Turn on your sound at the end of video!
+
+[![demo video](http://img.youtube.com/vi/Kv9FGClP1-k/0.jpg)](http://www.youtube.com/watch?v=Kv9FGClP1-k)
 
 
 Troubleshooting and FAQ

@@ -4,7 +4,7 @@
 FROM ubuntu:16.04 as system
 
 ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://qnap.dorowu.com/#' /etc/apt/sources.list; fi
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
 # built-in packages
 RUN apt-get update \
@@ -55,7 +55,7 @@ RUN apt-get update \
 FROM ubuntu:16.04 as builder
 
 ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://qnap.dorowu.com/#' /etc/apt/sources.list; fi
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates
@@ -80,10 +80,9 @@ RUN cd /src/web \
 ################################################################################
 # merge
 ################################################################################
-FROM scratch
+FROM system
 LABEL maintainer="fcwu.tw@gmail.com"
 
-COPY --from=system / /
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY image /
 

@@ -9,7 +9,7 @@ if [ -n "$VNC_PASSWORD" ]; then
 fi
 
 if [ -n "$RESOLUTION" ]; then
-    sed -i "s/1024x768/$RESOLUTION/" /etc/supervisor/conf.d/supervisord.conf
+    sed -i "s/1024x768/$RESOLUTION/" /usr/local/bin/xvfb.sh
 fi
 
 USER=${USER:-root}

@@ -27,9 +27,6 @@ class State(object):
         self._event.set()
 
     def _update_health(self):
-        if self._health:
-            return
-
         health = True
         output = gsp.check_output(['supervisorctl', 'status'])
         for line in output.strip().split('\n'):

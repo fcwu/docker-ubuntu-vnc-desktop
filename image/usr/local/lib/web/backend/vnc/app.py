@@ -8,6 +8,7 @@ from flask import (
     request,
     Response,
     jsonify,
+    abort,
 )
 from gevent import subprocess as gsp, spawn, sleep
 from geventwebsocket.exceptions import WebSocketError
@@ -33,6 +34,13 @@ def apistate():
         'code': 200,
         'data': mystate,
     })
+
+
+@app.route('/api/health')
+def apihealth():
+    if state.health:
+        return 'success'
+    abort(503, 'unhealthy')
 
 
 @app.route('/api/reset')

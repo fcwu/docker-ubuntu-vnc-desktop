@@ -19,6 +19,13 @@ Browse http://127.0.0.1:6080/
 
 <img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png?v1" width=700/>
 
+**Ubuntu Version**
+
+Choose your favorite Ubuntu version with [tags](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/tags/)
+
+- bionic: Ubuntu 18.04 (latest)
+- xenial: Ubuntu 16.04
+- trusty: Ubuntu 14.04
 
 VNC Viewer
 ------------------

@@ -76,6 +76,43 @@ RUN cd /src/web \
     && yarn \
     && npm run build
 
+# start installing Yocto base host packages, git, tar, python
+RUN apt-get update && apt-get install -y --no-install-recommends git tar python3
+
+# now install additional yocto base host packages
+RUN apt-get update && apt-get install -y --no-install-recommends gawk wget git-core diffstat unzip texinfo gcc-multilib \
+     build-essential chrpath socat cpio python python3 python3-pip python3-pexpect \
+     xz-utils debianutils iputils-ping libsdl1.2-dev xterm
+
+RUN apt-get update
+
+# now install from the NXP i.MX recommended yocto packages
+RUN apt-get update && apt-get install -y --no-install-recommends gawk wget git-core diffstat unzip texinfo gcc-multilib \
+ build-essential chrpath socat libsdl1.2-dev libsdl1.2-dev xterm sed cvs subversion coreutils texi2html \
+docbook-utils python-pysqlite2 help2man make gcc g++ desktop-file-utils \
+libgl1-mesa-dev libglu1-mesa-dev mercurial autoconf automake groff curl lzop asciidoc 
+
+RUN apt-get update
+
+# now install uboot tools from NXP i.MX recommended yocto packages
+RUN apt-get update && apt-get install -y --no-install-recommends u-boot-tools
+
+RUN apt-get update
+
+# now install emacs
+RUN apt-get update && apt-get install -y --no-install-recommends emacs
+
+RUN apt-get update
+
+# now install ~/bin directory with repo from NXP i.MX recommended yocto packages
+RUN mkdir ~/bin
+RUN curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+RUN sudo chmod a+x ~/bin/repo
+
+# now clone Poky in (from Yocto quick setup guide)
+RUN apt-get update
+RUN git clone git://git.yoctoproject.org/poky
+RUN git checkout tags/yocto-2.5 -b my-yocto-2.5
 
 ################################################################################
 # merge
@@ -87,8 +124,8 @@ COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY image /
 
 EXPOSE 80
-WORKDIR /root
-ENV HOME=/home/ubuntu \
+WORKDIR /home
+ENV HOME=/home/ \
     SHELL=/bin/bash
 HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://127.0.0.1/api/health
 ENTRYPOINT ["/startup.sh"]

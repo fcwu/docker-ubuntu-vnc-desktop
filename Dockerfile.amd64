@@ -48,34 +48,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
 
-
-################################################################################
-# builder
-################################################################################
-FROM ubuntu:16.04 as builder
-
-ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates
-
-# nodejs
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-    && apt-get install -y nodejs
-
-# yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
-    && apt-get install -y yarn
-
-# build frontend
-COPY web /src/web
-RUN cd /src/web \
-    && yarn \
-    && npm run build
-
 # start installing Yocto base host packages, git, tar, python
 RUN apt-get update && apt-get install -y --no-install-recommends git tar python3
 
@@ -104,15 +76,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends emacs
 
 RUN apt-get update
 
-# now install ~/bin directory with repo from NXP i.MX recommended yocto packages
-RUN mkdir ~/bin
-RUN curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-RUN sudo chmod a+x ~/bin/repo
 
-# now clone Poky in (from Yocto quick setup guide)
-RUN apt-get update
-RUN git clone git://git.yoctoproject.org/poky
-RUN git checkout tags/yocto-2.5 -b my-yocto-2.5
+################################################################################
+# builder
+################################################################################
+FROM ubuntu:16.04 as builder
+
+ARG localbuild
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates
+
+# nodejs
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get install -y nodejs
+
+# yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get update \
+    && apt-get install -y yarn
+
+# build frontend
+COPY web /src/web
+RUN cd /src/web \
+    && yarn \
+    && npm run build
 
 ################################################################################
 # merge
@@ -123,6 +113,20 @@ LABEL maintainer="fcwu.tw@gmail.com"
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY image /
 
+# now install ~/bin directory with repo from NXP i.MX recommended yocto packages
+#RUN mkdir ~/bin && curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo && chmod a+x ~/bin/repo
+
+# now clone Poky in (from Yocto quick setup guide)
+#RUN apt-get update && mkdir -p /root/poky && echo $PWD && git clone git://git.yoctoproject.org/poky /root/poky && echo $PWD && cd /root/poky && echo $PWD && git checkout tags/yocto-2.5 -b my-yocto-2.5
+#RUN cd /root
+#RUN pwd 
+#RUN git clone git://git.yoctoproject.org/poky
+#RUN pwd
+#RUN cd ./poky
+#RUN pwd
+#RUN ls
+#RUN git checkout tags/yocto-2.5 -b my-yocto-2.5
+     
 EXPOSE 80
 WORKDIR /home
 ENV HOME=/home/ \

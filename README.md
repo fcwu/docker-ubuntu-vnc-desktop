@@ -118,7 +118,7 @@ Troubleshooting and FAQ
 
 1. boot2docker connection issue, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/2
 2. Multi-language supports, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/80
-
+3. Autostart, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/85
 
 License
 ==================

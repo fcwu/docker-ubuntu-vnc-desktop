@@ -24,6 +24,7 @@ Browse http://127.0.0.1:6080/
 Choose your favorite Ubuntu version with [tags](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/tags/)
 
 - bionic: Ubuntu 18.04 (latest)
+- bionic-lxqt: Ubuntu 18.04 LXQt
 - xenial: Ubuntu 16.04
 - trusty: Ubuntu 14.04
 

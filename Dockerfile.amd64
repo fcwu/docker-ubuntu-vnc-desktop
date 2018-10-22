@@ -7,6 +7,7 @@ FROM $image as system
 ARG localbuild
 RUN echo "LOCALBUILD=$localbuild"
 RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+ENV DEBIAN_FRONTEND=noninteractive
 
 # && add-apt-repository ppa:fcwu-tw/apps  x11vnc
 # built-in packages
@@ -17,7 +18,7 @@ RUN apt-get update \
         supervisor nginx sudo vim-tiny net-tools zenity xz-utils \
         dbus-x11 x11-utils alsa-utils \
         mesa-utils libgl1-mesa-dri \
-        lxde xvfb x11vnc \
+        lxqt openbox xvfb x11vnc \
         gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
         firefox chromium-browser \
         ttf-ubuntu-font-family ttf-wqy-zenhei \
@@ -35,7 +36,7 @@ RUN chmod +x /bin/tini
 
 # ffmpeg
 RUN mkdir -p /usr/local/ffmpeg \
-    && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
+    && curl -sSL --http1.1 https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
 
 # python library
 COPY image/usr/local/lib/web/backend/requirements.txt /tmp/

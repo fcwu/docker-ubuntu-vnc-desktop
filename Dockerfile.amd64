@@ -1,9 +1,11 @@
 ################################################################################
 # base system
 ################################################################################
-FROM ubuntu:18.04 as system
+ARG image
+FROM $image as system
 
 ARG localbuild
+RUN echo "LOCALBUILD=$localbuild"
 RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
 # && add-apt-repository ppa:fcwu-tw/apps  x11vnc
@@ -26,7 +28,7 @@ RUN apt-get update \
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
-# tini for subreap                                   
+# tini for subreap
 ARG TINI_VERSION=v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini

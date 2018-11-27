@@ -12,7 +12,7 @@ itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.0
 meld3==1.0.2
-requests==2.18.4
+requests==2.20.1
 six==1.11.0
 supervisor==3.2.0
 urllib3==1.22

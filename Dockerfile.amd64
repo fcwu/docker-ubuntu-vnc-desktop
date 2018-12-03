@@ -6,7 +6,7 @@ FROM $image as system
 
 ARG localbuild
 RUN echo "LOCALBUILD=$localbuild"
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 ENV DEBIAN_FRONTEND=noninteractive
 
 # && add-apt-repository ppa:fcwu-tw/apps  x11vnc
@@ -19,7 +19,7 @@ RUN apt-get update \
         dbus-x11 x11-utils alsa-utils \
         mesa-utils libgl1-mesa-dri \
         lxqt openbox xvfb x11vnc \
-        gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+        gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
         firefox chromium-browser \
         ttf-ubuntu-font-family ttf-wqy-zenhei \
     && add-apt-repository -r ppa:fcwu-tw/apps \
@@ -58,7 +58,7 @@ RUN apt-get update \
 FROM ubuntu:16.04 as builder
 
 ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates

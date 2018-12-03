@@ -4,6 +4,8 @@ make build
 make run
 ```
 
+You can overwrite the local Ubuntu repo using `make LOCALBUILD=de build`.
+
 ## develop backend
 ```
 make shell

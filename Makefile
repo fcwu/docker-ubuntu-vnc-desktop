@@ -3,7 +3,7 @@
 REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 IMAGE ?= ubuntu:18.04
-LOCALBUILD ?= 1
+LOCALBUILD ?= tw
 
 build:
 	docker build -t $(REPO):$(TAG) --build-arg localbuild=$(LOCALBUILD) --build-arg image=$(IMAGE) .

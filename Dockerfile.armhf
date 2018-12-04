@@ -8,7 +8,7 @@ FROM arm32v7/ubuntu:18.04 as system
 
 COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
 ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update \
@@ -25,7 +25,7 @@ RUN apt update \
 # install debs error if combine together
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxde xvfb x11vnc \
+        lxqt openbox xvfb x11vnc \
         firefox chromium-browser \
         ttf-ubuntu-font-family ttf-wqy-zenhei \
     && apt autoclean -y \
@@ -66,29 +66,19 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:18.04 as builder
-
-ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates gnupg
-
-# nodejs
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-    && apt-get install -y nodejs
-
-# yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
-    && apt-get install -y yarn
+FROM node:8-alpine as builder
 
 # build frontend
 COPY web /src/web
 RUN cd /src/web \
     && yarn \
-    && npm run build
+    && yarn run build
+
+# build frontend
+COPY web /src/web
+RUN cd /src/web \
+    && yarn install \
+    && yarn build
 
 
 ################################################################################

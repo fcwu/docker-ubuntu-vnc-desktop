@@ -6,7 +6,7 @@ FROM $image as system
 
 ARG localbuild
 RUN echo "LOCALBUILD=$localbuild"
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 ENV DEBIAN_FRONTEND=noninteractive
 
 # && add-apt-repository ppa:fcwu-tw/apps  x11vnc
@@ -55,29 +55,13 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:16.04 as builder
-
-ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates
-
-# nodejs
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-    && apt-get install -y nodejs
-
-# yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-    && apt-get update \
-    && apt-get install -y yarn
+FROM node:8-alpine as builder
 
 # build frontend
 COPY web /src/web
 RUN cd /src/web \
-    && yarn \
-    && npm run build
+    && yarn install \
+    && yarn build
 
 
 ################################################################################

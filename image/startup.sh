@@ -23,7 +23,7 @@ if [ "$USER" != "root" ]; then
     fi
     HOME=/home/$USER
     echo "$USER:$PASSWORD" | chpasswd
-    cp -r /root/{.gtkrc-2.0,.asoundrc} ${HOME}
+    cp -r /root/{.config,.gtkrc-2.0,.asoundrc} ${HOME}
     [ -d "/dev/snd" ] && chgrp -R adm /dev/snd
 fi
 sed -i "s|%USER%|$USER|" /etc/supervisor/conf.d/supervisord.conf

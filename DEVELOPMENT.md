@@ -5,6 +5,7 @@ make run
 ```
 
 You can overwrite the local Ubuntu repo using `make LOCALBUILD=de build`.
+You can run the image as adifferent user `make CUSTOM_USER=newuser run`.
 
 ## develop backend
 ```

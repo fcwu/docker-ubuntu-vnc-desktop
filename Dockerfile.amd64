@@ -9,47 +9,48 @@ RUN echo "LOCALBUILD=$localbuild"
 RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 ENV DEBIAN_FRONTEND=noninteractive
 
-# && add-apt-repository ppa:fcwu-tw/apps  x11vnc
-# built-in packages
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common curl apache2-utils \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends --allow-unauthenticated \
-        supervisor nginx sudo vim-tiny net-tools zenity xz-utils \
-        dbus-x11 x11-utils alsa-utils \
-        mesa-utils libgl1-mesa-dri \
-        lxqt openbox xvfb x11vnc \
-        gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
-        firefox chromium-browser \
-        ttf-ubuntu-font-family ttf-wqy-zenhei \
-    && add-apt-repository -r ppa:fcwu-tw/apps \
-    && apt-get autoclean \
-    && apt-get autoremove \
-    && rm -rf /var/lib/apt/lists/*
+# What apps you would like to be installed
+ARG APPS="vim-tiny net-tools zenity xz-utils firefox chromium-browser"
+ENV APPS=$APPS
+ARG BUILD_DEPS="build-essential software-properties-common"
+ENV BUILD_DEPS=$BUILD_DEPS
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
+# python library
+COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated \
+      $BUILD_DEPS apache2-utils curl supervisor nginx sudo  \
+      dbus-x11 x11-utils alsa-utils \
+      mesa-utils libgl1-mesa-dri \
+      lxqt openbox xvfb x11vnc \
+      gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
+      ttf-ubuntu-font-family ttf-wqy-zenhei \
+      $APPS \
+    && add-apt-repository -r ppa:fcwu-tw/apps \
+    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
+    && apt-get install -y python-dev python-pip \
+    && pip install setuptools wheel && pip install -r /tmp/requirements.txt \
+    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
+    && apt-get remove -y python-pip `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
+    && apt-get purge -y --auto-remove $BUILD_DEPS \
+    && apt-get autoclean \
+    && apt-get autoremove \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
 # tini for subreap
 ARG TINI_VERSION=v0.18.0
+ENV TINI_VERSION=$TINI_VERSION
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
 
 # ffmpeg
 RUN mkdir -p /usr/local/ffmpeg \
-    && curl -sSL --http1.1 https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
-
-# python library
-COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
-RUN apt-get update \
-    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
-    && apt-get install -y python-pip python-dev build-essential \
-	&& pip install setuptools wheel && pip install -r /tmp/requirements.txt \
-    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
-    && apt-get remove -y `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
-    && apt-get autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
+    && curl -sSL --http1.1 https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1 \
+    && rm -rf /usr/local/ffmpeg/manpages
 
 
 ################################################################################

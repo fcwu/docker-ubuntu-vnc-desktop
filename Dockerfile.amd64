@@ -8,11 +8,11 @@ ARG localbuild
 RUN echo "LOCALBUILD=$localbuild"
 RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
-# && add-apt-repository ppa:fcwu-tw/apps  x11vnc
 # built-in packages
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common curl apache2-utils \
     && apt-get update \
+    && add-apt-repository -y ppa:fcwu-tw/apps \
     && apt-get install -y --no-install-recommends --allow-unauthenticated \
         supervisor nginx sudo vim-tiny net-tools zenity xz-utils \
         dbus-x11 x11-utils alsa-utils \

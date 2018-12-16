@@ -20,7 +20,11 @@ ENV BUILD_DEPS=$BUILD_DEPS
 # python library
 COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
 
+# built-in packages
 RUN apt-get update \
+    && apt-get install -y --no-install-recommends software-properties-common curl apache2-utils \
+    && apt-get update \
+    && add-apt-repository -y ppa:fcwu-tw/apps \
     && apt-get install -y --no-install-recommends --allow-unauthenticated \
       $BUILD_DEPS apache2-utils curl supervisor nginx sudo  \
       dbus-x11 x11-utils alsa-utils \

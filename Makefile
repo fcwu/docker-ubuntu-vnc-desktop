@@ -1,6 +1,6 @@
 .PHONY: build run
 
-REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
+REPO  ?= lxqt
 TAG   ?= latest
 IMAGE ?= ubuntu:18.04
 LOCALBUILD ?= tw

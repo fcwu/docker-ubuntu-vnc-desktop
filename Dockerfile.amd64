@@ -10,7 +10,7 @@ RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http
 ENV DEBIAN_FRONTEND=noninteractive
 
 # What apps you would like to be installed
-ARG APPS="vim-tiny net-tools zenity xz-utils firefox chromium-browser"
+ARG APPS="vim-tiny net-tools zenity xz-utils firefox chromium-browser inetutils-ping lsof vim git"
 ENV APPS=$APPS
 ARG BUILD_DEPS="build-essential software-properties-common"
 ENV BUILD_DEPS=$BUILD_DEPS
@@ -61,19 +61,19 @@ RUN mkdir -p /usr/local/ffmpeg \
 # builder
 ################################################################################
 FROM node:8-alpine as builder
-
+RUN npm config set registry https://registry.npm.taobao.org 
 # build frontend
 COPY web /src/web
 RUN cd /src/web \
-    && yarn install \
-    && yarn build
+    && npm install \
+    && npm build
 
 
 ################################################################################
 # merge
 ################################################################################
 FROM system
-LABEL maintainer="fcwu.tw@gmail.com"
+LABEL maintainer="sh081042@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY image /

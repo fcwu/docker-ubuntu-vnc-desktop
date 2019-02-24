@@ -12,6 +12,10 @@ if [ -n "$X11VNC_ARGS" ]; then
     sed -i "s/^command=x11vnc.*/& ${X11VNC_ARGS}/" /etc/supervisor/conf.d/supervisord.conf
 fi
 
+if [ -n "$OPENBOX_ARGS" ]; then
+    sed -i "s#^command=/usr/bin/openbox.*#& ${OPENBOX_ARGS}#" /etc/supervisor/conf.d/supervisord.conf
+fi
+
 if [ -n "$RESOLUTION" ]; then
     sed -i "s/1024x768/$RESOLUTION/" /usr/local/bin/xvfb.sh
 fi

@@ -18,16 +18,17 @@ RUN apt update \
         supervisor nginx sudo vim-tiny net-tools zenity xz-utils \
         dbus-x11 x11-utils alsa-utils \
         mesa-utils libgl1-mesa-dri \
-    && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 # install debs error if combine together
-RUN apt update \
+RUN add-apt-repository -y ppa:fcwu-tw/apps \
+    && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxde xvfb x11vnc \
+        lxde xvfb x11vnc=0.9.16-1 \
         firefox chromium-browser \
         ttf-ubuntu-font-family ttf-wqy-zenhei \
+    && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
@@ -72,7 +73,7 @@ ARG localbuild
 RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates gnupg
+    && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
 
 # nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
@@ -89,6 +90,7 @@ COPY web /src/web
 RUN cd /src/web \
     && yarn \
     && npm run build
+RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch
 
 
 ################################################################################

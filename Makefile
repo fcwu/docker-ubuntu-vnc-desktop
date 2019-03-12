@@ -4,9 +4,13 @@ REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 IMAGE ?= ubuntu:18.04
 LOCALBUILD ?= 1
+FLAVOR ?= default
+ARCH ?= amd64
 
-build:
-	docker build -t $(REPO):$(TAG) --build-arg localbuild=$(LOCALBUILD) --build-arg image=$(IMAGE) .
+templates = Dockerfile image/etc/supervisor/conf.d/supervisord.conf
+
+build: $(templates)
+	docker build -t $(REPO):$(TAG) .
 
 run:
 	docker run --rm \
@@ -27,3 +31,16 @@ gen-ssl:
 	mkdir -p ssl
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 		-keyout ssl/nginx.key -out ssl/nginx.crt
+
+clean:
+	rm -f $(templates)
+		
+% : %.j2 flavors/$(FLAVOR).yml
+	docker run -v $(shell pwd):/data vikingco/jinja2cli \
+		-D flavor=$(FLAVOR) \
+		-D repo=$(REPO) \
+		-D tag=$(TAG) \
+		-D image=$(IMAGE) \
+		-D localbuild=$(LOCALBUILD) \
+		-D arch=$(ARCH) \
+		$< flavors/$(FLAVOR).yml > $@ || rm $@

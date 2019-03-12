@@ -17,13 +17,9 @@ stdout_logfile_maxbytes=0
 stderr_logfile=/dev/fd/1
 stderr_logfile_maxbytes=0
 
+{% if desktop == "lxde" %}
 [group:x]
 programs=xvfb,wm,lxpanel,pcmanfm,x11vnc,novnc
-
-[program:xvfb]
-priority=10
-command=/usr/local/bin/xvfb.sh
-stopsignal=KILL
 
 [program:wm]
 priority=15
@@ -43,6 +39,12 @@ directory=%HOME%
 command=/usr/bin/pcmanfm --desktop --profile LXDE
 user=%USER%
 environment=DISPLAY=":1",HOME="%HOME%",USER="%USER%"
+{% endif %}
+
+[program:xvfb]
+priority=10
+command=/usr/local/bin/xvfb.sh
+stopsignal=KILL
 
 [program:x11vnc]
 priority=20

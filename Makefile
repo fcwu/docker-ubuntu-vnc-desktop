@@ -4,7 +4,7 @@ REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 IMAGE ?= ubuntu:18.04
 LOCALBUILD ?= 1
-FLAVOR ?= default
+FLAVOR ?= lxde
 ARCH ?= amd64
 
 templates = Dockerfile image/etc/supervisor/conf.d/supervisord.conf
@@ -35,11 +35,9 @@ gen-ssl:
 clean:
 	rm -f $(templates)
 		
-% : %.j2 flavors/$(FLAVOR).yml
+%: %.j2 flavors/$(FLAVOR).yml
 	docker run -v $(shell pwd):/data vikingco/jinja2cli \
 		-D flavor=$(FLAVOR) \
-		-D repo=$(REPO) \
-		-D tag=$(TAG) \
 		-D image=$(IMAGE) \
 		-D localbuild=$(LOCALBUILD) \
 		-D arch=$(ARCH) \

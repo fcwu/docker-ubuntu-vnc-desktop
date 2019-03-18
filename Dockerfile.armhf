@@ -1,21 +1,19 @@
-# Built with arch: {{ arch }} flavor: {{ flavor }} image: {{ image }} localbuild: {{localbuild }}
+# Built with arch: armhf flavor: lxde image: ubuntu:18.04 localbuild: 1
 #
 ################################################################################
 # base system
 ################################################################################
-{%if arch == "amd64"%}
-FROM {{image}} as system
-{%elif arch == "armhf"%}
-# qemu helper for arm build
-FROM {{image}} as amd64
-RUN apt update && apt install -y qemu-user-static
-FROM arm32v7/{{image}} as system
-COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
-{%endif%}
 
-{% if localbuild %}
+# qemu helper for arm build
+FROM ubuntu:18.04 as amd64
+RUN apt update && apt install -y qemu-user-static
+FROM arm32v7/ubuntu:18.04 as system
+COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
+
+
+
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
-{% endif %}
+
 
 # built-in packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -34,27 +32,20 @@ RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
         xvfb x11vnc=0.9.16-1 \
-        {%for package in addon_packages%}{{package}} {%endfor%} \
+        vim-tiny firefox chromium-browser ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-{%if desktop == "lxde" %}
+
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
         lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-{%endif%} 
-{%if desktop == "lxqt" %}
-RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxqt openbox gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
-    && apt autoclean -y \
-    && apt autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
-{%endif%} 
+ 
+ 
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
@@ -84,11 +75,11 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM {{image}} as builder
+FROM ubuntu:18.04 as builder
 
-{% if localbuild %}
+
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
-{% endif %}
+
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
@@ -109,9 +100,9 @@ RUN cd /src/web \
     && yarn \
     && npm run build
 
-{%if arch == "armhf"%}
+
 RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch
-{%endif%}
+
 
 ################################################################################
 # merge

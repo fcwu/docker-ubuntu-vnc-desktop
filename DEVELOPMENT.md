@@ -1,6 +1,7 @@
 # Run in local
 ```
-make build
+make clean
+FLAVOR=lxqt ARCH=amd64 IMAGE=ubuntu:18.04 make build
 make run
 ```
 

@@ -1,30 +1,47 @@
+# Built with arch: amd64 flavor: lxde image: ubuntu:18.04 localbuild: 1
+#
 ################################################################################
 # base system
 ################################################################################
-ARG image=ubuntu:18.04
-FROM $image as system
 
-ARG localbuild
-RUN echo "LOCALBUILD=$localbuild"
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+FROM ubuntu:18.04 as system
+
+
+
+RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+
 
 # built-in packages
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common curl apache2-utils \
-    && apt-get update \
-    && add-apt-repository -y ppa:fcwu-tw/apps \
-    && apt-get install -y --no-install-recommends --allow-unauthenticated \
-        supervisor nginx sudo vim-tiny net-tools zenity xz-utils \
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt update \
+    && apt install -y --no-install-recommends software-properties-common curl apache2-utils \
+    && apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        supervisor nginx sudo net-tools zenity xz-utils \
         dbus-x11 x11-utils alsa-utils \
         mesa-utils libgl1-mesa-dri \
-        lxde xvfb x11vnc=0.9.16-1 \
-        gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
-        firefox chromium-browser \
-        ttf-ubuntu-font-family ttf-wqy-zenhei \
-    && add-apt-repository -r ppa:fcwu-tw/apps \
-    && apt-get autoclean \
-    && apt-get autoremove \
+    && apt autoclean -y \
+    && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+# install debs error if combine together
+RUN add-apt-repository -y ppa:fcwu-tw/apps \
+    && apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        xvfb x11vnc=0.9.16-1 \
+        vim-tiny firefox chromium-browser ttf-ubuntu-font-family ttf-wqy-zenhei  \
+    && add-apt-repository -r ppa:fcwu-tw/apps \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+ 
+ 
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
@@ -54,13 +71,14 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:16.04 as builder
+FROM ubuntu:18.04 as builder
 
-ARG localbuild
-RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; fi
+
+RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates
+    && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
 
 # nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
@@ -77,6 +95,7 @@ COPY web /src/web
 RUN cd /src/web \
     && yarn \
     && npm run build
+
 
 
 ################################################################################

@@ -51,7 +51,7 @@ RUN apt update \
 
 # tini for subreap
 ARG TINI_VERSION=v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-armhf /bin/tini
 RUN chmod +x /bin/tini
 
 # ffmpeg

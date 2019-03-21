@@ -1,0 +1,13 @@
+--- core/rfb.js	2019-02-24 21:17:04.402944311 +0800
++++ core/rfb.js	2019-02-24 21:17:34.782484107 +0800
+@@ -1256,8 +1256,8 @@
+         encs.push(encodings.encodingCopyRect);
+         // Only supported with full depth support
+         if (this._fb_depth == 24) {
+-            encs.push(encodings.encodingTight);
+-            encs.push(encodings.encodingTightPNG);
++            // encs.push(encodings.encodingTight);
++            // encs.push(encodings.encodingTightPNG);
+             encs.push(encodings.encodingHextile);
+             encs.push(encodings.encodingRRE);
+         }

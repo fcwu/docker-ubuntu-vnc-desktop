@@ -1,15 +1,23 @@
-FROM ubuntu:18.04 as amd64
-RUN apt update && apt install -y qemu-user-static
-
+# Built with arch: armhf flavor: lxde image: ubuntu:18.04 localbuild: 1
+#
 ################################################################################
 # base system
 ################################################################################
-FROM arm32v7/ubuntu:18.04 as system
 
+# qemu helper for arm build
+FROM ubuntu:18.04 as amd64
+RUN apt update && apt install -y qemu-user-static
+FROM arm32v7/ubuntu:18.04 as system
 COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
 ARG localbuild
 RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http://'$localbuild'.archive.ubuntu.com/#' /etc/apt/sources.list; fi
 
+
+
+RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+
+
+# built-in packages
 ENV DEBIAN_FRONTEND noninteractive
 # What apps you would like to be installed
 ARG APPS="vim-tiny net-tools zenity xz-utils firefox chromium-browser"
@@ -73,6 +81,9 @@ RUN cd /src/web \
     && yarn build
 
 
+RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch
+
+
 ################################################################################
 # merge
 ################################################################################
@@ -86,5 +97,5 @@ EXPOSE 80
 WORKDIR /root
 ENV HOME=/home/ubuntu \
     SHELL=/bin/bash
-HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://127.0.0.1/api/health
+HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://127.0.0.1:6079/api/health
 ENTRYPOINT ["/startup.sh"]

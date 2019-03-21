@@ -7,17 +7,18 @@ LOCALBUILD ?= tw
 HTTP_PASSWORD ?= 123456
 CUSTOM_USER ?= ubuntu
 PASSWORD ?= ubuntu
+FLAVOR ?= lxqt
+ARCH ?= amd64
 
-build:
-	docker build -t $(REPO):$(TAG) --build-arg localbuild=$(LOCALBUILD) --build-arg image=$(IMAGE) .
+templates = Dockerfile image/etc/supervisor/conf.d/supervisord.conf
+
+build: $(templates)
+	docker build -t $(REPO):$(TAG) .
 
 run:
 	docker run --rm \
 		-p 6080:80 -p 6081:443 \
 		-v ${PWD}:/src:ro \
-		-e HTTP_PASSWORD=$(HTTP_PASSWORD) \
-		-e USER=$(CUSTOM_USER) \
-		-e PASSWORD=$(PASSWORD) \
 		--name ubuntu-desktop-lxde-test \
 		$(REPO):$(TAG)
 
@@ -28,3 +29,14 @@ gen-ssl:
 	mkdir -p ssl
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 		-keyout ssl/nginx.key -out ssl/nginx.crt
+
+clean:
+	rm -f $(templates)
+		
+%: %.j2 flavors/$(FLAVOR).yml
+	docker run -v $(shell pwd):/data vikingco/jinja2cli \
+		-D flavor=$(FLAVOR) \
+		-D image=$(IMAGE) \
+		-D localbuild=$(LOCALBUILD) \
+		-D arch=$(ARCH) \
+		$< flavors/$(FLAVOR).yml > $@ || rm $@

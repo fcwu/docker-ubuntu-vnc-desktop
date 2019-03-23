@@ -1,3 +1,9 @@
+# Get code
+
+```
+git clone --recursive https://github.com/fcwu/docker-ubuntu-vnc-desktop
+```
+
 # Run in local
 ```
 make clean

@@ -55,6 +55,14 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 {%endif%} 
+{%if desktop == "xfce4" %}
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        xubuntu-desktop \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+{%endif%} 
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 

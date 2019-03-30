@@ -47,8 +47,8 @@ def apihealth():
 def reset():
     if 'w' in request.args and 'h' in request.args:
         args = {
-            'w': request.args.get('w'),
-            'h': request.args.get('h'),
+            'w': int(request.args.get('w')),
+            'h': int(request.args.get('h')),
         }
         state.set_size(args['w'], args['h'])
 

@@ -19,7 +19,7 @@ make run
 ## develop backend
 ```
 make shell
-supervisorctl stop web
+supervisorctl -c /etc/supervisor/supervisord.conf stop web
 cd /src/image/usr/local/lib/web/backend
 ./run.py --debug
 ```

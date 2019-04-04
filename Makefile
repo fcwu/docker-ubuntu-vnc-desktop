@@ -45,7 +45,10 @@ gen-ssl:
 
 clean:
 	rm -f $(templates)
-		
+
+extra-clean:
+	docker rmi $(REPO):$(TAG)
+	docker image prune -f
 
 # Run jinja2cli to parse Jinja template applying rules defined in the flavors definitions
 %: %.j2 flavors/$(FLAVOR).yml

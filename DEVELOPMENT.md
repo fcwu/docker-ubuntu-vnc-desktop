@@ -4,6 +4,11 @@
 git clone --recursive https://github.com/fcwu/docker-ubuntu-vnc-desktop
 ```
 
+or, if you have already cloned it, get submodules contents :
+```
+git submodule init; git submodule update
+```
+
 # Run in local
 ```
 make clean

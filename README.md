@@ -12,7 +12,7 @@ Quick Start
 Run the docker container and access with port `6080`
 
 ```
-docker run -p 6080:80 dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 Browse http://127.0.0.1:6080/
@@ -34,13 +34,13 @@ VNC Viewer
 Forward VNC service port 5900 to host by
 
 ```
-docker run -p 6080:80 -p 5900:5900 dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -p 5900:5900 -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 Now, open the vnc viewer and connect to port 5900. If you would like to protect vnc service by password, set environment variable `VNC_PASSWORD`, for example
 
 ```
-docker run -p 6080:80 -p 5900:5900 -e VNC_PASSWORD=mypassword dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -p 5900:5900 -e VNC_PASSWORD=mypassword -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 A prompt will ask password either in the browser or vnc viewer.
@@ -51,7 +51,7 @@ HTTP Base Authentication
 This image provides base access authentication of HTTP via `HTTP_PASSWORD`
 
 ```
-docker run -p 6080:80 -e HTTP_PASSWORD=mypassword dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e HTTP_PASSWORD=mypassword -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 SSL
@@ -67,7 +67,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/nginx.key -out s
 Specify SSL port by `SSL_PORT`, certificate path to `/etc/nginx/ssl`, and forward it to 6081
 
 ```
-docker run -p 6081:443 -e SSL_PORT=443 -v ${PWD}/ssl:/etc/nginx/ssl dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6081:443 -e SSL_PORT=443 -v ${PWD}/ssl:/etc/nginx/ssl -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 Screen Resolution
@@ -76,7 +76,7 @@ Screen Resolution
 The Resolution of virtual desktop adapts browser window size when first connecting the server. You may choose a fixed resolution by passing `RESOLUTION` environment variable, for example
 
 ```
-docker run -p 6080:80 -e RESOLUTION=1920x1080 dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e RESOLUTION=1920x1080 -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 Default Desktop User
@@ -85,7 +85,7 @@ Default Desktop User
 The default user is `root`. You may change the user and password respectively by `USER` and `PASSWORD` environment variable, for example,
 
 ```
-docker run -p 6080:80 -e USER=doro -e PASSWORD=password dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e USER=doro -e PASSWORD=password -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
 ```
 
 Sound (Preview version and Linux only)
@@ -135,6 +135,7 @@ Troubleshooting and FAQ
 2. Multi-language supports, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/80
 3. Autostart, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/85
 4. x11vnc arguments(multiptr), https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/101
+5. firefox/chrome crash (/dev/shm), https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/112
 
 License
 ==================

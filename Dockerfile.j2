@@ -13,7 +13,7 @@ FROM arm32v7/{{image}} as system
 COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
 {%endif%}
 
-{% if localbuild %}
+{% if localbuild == 1 %}
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
 {% endif %}
 
@@ -94,7 +94,7 @@ RUN apt-get update \
 ################################################################################
 FROM {{image}} as builder
 
-{% if localbuild %}
+{% if localbuild == 1 %}
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
 {% endif %}
 

@@ -32,7 +32,7 @@
 </head>
 <body>
     <div id="mainContainer" class="mainContainer">
-        <video name="videoElement" class="centeredVideo" autoplay width="1024" height="576">
+        <video name="videoElement" class="centeredVideo" width="1024" height="576">
             Your browser is too old which doesn't support HTML5 video.
         </video>
         <br>
@@ -63,21 +63,38 @@
               //flv_load();
               var videoElement = document.getElementsByName('videoElement')[0];
               flvPlayer = flvjs.createPlayer({
-                  type: 'flv',
-                  url: url,
-                  isLive: true,
-                  withCredentials: true
-              }, {isLive: true, enableStashBuffer: false});
+                type: 'flv',
+                url: url,
+                isLive: true,
+                withCredentials: true
+              }, { isLive: true, enableStashBuffer: false });
               flvPlayer.attachMediaElement(videoElement);
               flvPlayer.load();
-              flvPlayer.play();
-              flvPlayer.on("error", function() {
+              function f() {
+                try {
+                  // flvPlayer.play();
+                  var playPromise = videoElement.play();
+                  if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                      console.log("play successfully");
+                    }).catch(error => {
+                      // console.log(error);
+                      setTimeout(f, 10)
+                    });
+                  } else {
+                    // console.log('undefined');
+                    setTimeout(f, 10)
+                  }
+                } catch (e) { console.log(e); }
+              }
+              videoElement.addEventListener('canplay', function (e) { setTimeout(f, 0); });
+              flvPlayer.on("error", function () {
                 window.location.reload();
               });
             } catch (e) {
               console.log(e);
             }
-        });
+          });
     </script>
 </body>
 </html>

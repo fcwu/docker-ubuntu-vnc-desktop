@@ -51,8 +51,12 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/
 RUN chmod +x /bin/tini
 
 # ffmpeg
-RUN mkdir -p /usr/local/ffmpeg \
-    && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /usr/local/ffmpeg \
+    && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
 # python library
 COPY image/usr/local/lib/web/backend/requirements.txt /tmp/

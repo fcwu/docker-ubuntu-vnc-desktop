@@ -94,6 +94,8 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && apt-get update \
     && apt-get install -y yarn
 
+ENV PREFIX_PATH = "APP"
+
 # build frontend
 COPY web /src/web
 RUN cd /src/web \

@@ -56,7 +56,7 @@ export default {
         'h': h
       }
       try {
-        const response = await this.$http.get('api/state', {params: params})
+        const response = await this.$http.get(process.env.PREFIX_PATH + '/api/state', {params: params})
         const body = response.data
         if (body.code !== 200) {
           this.stateErrorCount += 1
@@ -71,7 +71,7 @@ export default {
 
         // adaptive resolution
         if (!body.data.config.fixedResolution && body.data.config.sizeChangedCount === 0) {
-          const response = await this.$http.get('api/reset', {params: params})
+          const response = await this.$http.get(process.env.PREFIX_PATH + '/api/reset', {params: params})
           const body = response.data
           if (body.code !== 200) {
             this.stateErrorCount += 1
@@ -136,6 +136,7 @@ export default {
       // console.trace()
       console.log(`connecting...`)
       this.errorMessage = ''
+      let websockifyPath = process.env.PREFIX_PATH + '/websockify'
       if (force || this.vncState === 'stopped') {
         this.vncState = 'connecting'
         let hostname = window.location.hostname
@@ -146,7 +147,7 @@ export default {
         let url = 'static/vnc.html?'
         url += 'autoconnect=1&'
         url += `host=${hostname}&port=${port}&`
-        url += `path=websockify&title=novnc2&`
+        url += `path=${websockifyPath}&title=novnc2&`
         url += `logging=warn`
         this.$refs.vncFrame.setAttribute('src', url)
       }

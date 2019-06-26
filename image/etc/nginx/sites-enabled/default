@@ -13,11 +13,19 @@ server {
 	root /usr/local/lib/web/frontend/;
 	index index.html index.htm;
 
-    location ~ ^/APP/api {
+    location = /app {
+       try_files $uri @rewrites;
+    }
+
+    location @rewrites {
+        rewrite ^(.+)$ /index.html last;
+    }
+
+    location ~ ^/app/api {
         try_files $uri @api;
     }
 
-    location = /APP/websockify {
+    location = /app/websockify {
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";

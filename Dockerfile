@@ -112,6 +112,9 @@ RUN cp -R /src/web/dist/. /usr/local/lib/web/frontend/
 
 COPY image /
 
+# This has to be called in deriving images
+RUN python /etc/RenameURL.py
+
 EXPOSE 80
 WORKDIR /root
 ENV HOME=/home/ubuntu \

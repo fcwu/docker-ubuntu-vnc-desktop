@@ -115,8 +115,6 @@ def main():
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
     log = logging.getLogger('novnc2')
 
-    app.config["APPLICATION_ROOT"] = os.getenv("PREFIX_PATH")
-
     entrypoint()
 
 

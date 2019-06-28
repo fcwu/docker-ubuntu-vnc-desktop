@@ -1,5 +1,5 @@
 'use strict'
 module.exports = {
   NODE_ENV: '"production"',
-  PREFIX_PATH: '"/app"'
+  PREFIX_PATH: `"${process.env.PREFIX_PATH}"`
 }

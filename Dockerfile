@@ -4,12 +4,9 @@
 # base system
 ################################################################################
 
-FROM ubuntu:18.04 as system
-
-
+FROM ubuntu:16.04 as system
 
 RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
-
 
 # built-in packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -27,7 +24,7 @@ RUN apt update \
 RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc=0.9.16-1 \
+        xvfb x11vnc\
         vim-tiny firefox chromium-browser ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
@@ -36,7 +33,7 @@ RUN add-apt-repository -y ppa:fcwu-tw/apps \
 
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
@@ -77,10 +74,6 @@ RUN apt-get update \
 ################################################################################
 # FROM ubuntu:18.04 as builder
 
-
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
-
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
 
@@ -94,14 +87,14 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && apt-get update \
     && apt-get install -y yarn
 
+ARG ABC
 ENV PREFIX_PATH "/app"
+
+COPY image /
 
 # build frontend
 COPY web /src/web
-RUN cd /src/web \
-    && yarn \
-    && npm run build
-
+RUN /etc/install.sh
 
 LABEL maintainer="Tobias Stein, fcwu.tw@gmail.com"
 
@@ -109,11 +102,6 @@ LABEL maintainer="Tobias Stein, fcwu.tw@gmail.com"
 RUN mkdir -p /usr/local/lib/web/frontend
 
 RUN cp -R /src/web/dist/. /usr/local/lib/web/frontend/
-
-COPY image /
-
-# This has to be called in deriving images
-RUN python /etc/RenameURL.py
 
 EXPOSE 80
 WORKDIR /root

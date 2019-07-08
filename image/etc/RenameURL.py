@@ -1,7 +1,11 @@
 import os, fnmatch
 
 toFind = "/app"
-toReplace = os.getenv("PREFIX_PATH", "/app")
+toReplace = os.getenv("PREFIX_PATH")
+
+if (toReplace is None):
+    print("No path given by environment variable.")
+    exit()
 
 print("using path {0} ...".format(toReplace))
 

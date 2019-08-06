@@ -59,15 +59,7 @@ if [ -n "$HTTP_PASSWORD" ]; then
 	sed -i 's|#_HTTP_PASSWORD_#||' /etc/nginx/sites-enabled/default
 fi
 
-# novnc websockify
-ln -s "/usr/local/lib/web/frontend$PREFIX_PATH/static/websockify" "/usr/local/lib/web/frontend$PREFIX_PATH/static/novnc/utils/websockify"
-chmod +x "/usr/local/lib/web/frontend$PREFIX_PATH/static/websockify/run"
-
-# clearup
-PASSWORD=
-HTTP_PASSWORD=
-
-#dynamic prefix path renaming
+# dynamic prefix path renaming
 if [ -n "$DYNAMIC_PREFIX_PATH" ]; then
     PREFIX_PATH="$DYNAMIC_PREFIX_PATH"
     echo "DYNAMIC_PREFIX_PATH: $PREFIX_PATH"
@@ -75,5 +67,13 @@ if [ -n "$DYNAMIC_PREFIX_PATH" ]; then
     /etc/install.sh
     cat /etc/nginx/sites-enabled/default
 fi
+
+# novnc websockify
+ln -s "/usr/local/lib/web/frontend$PREFIX_PATH/static/websockify" "/usr/local/lib/web/frontend$PREFIX_PATH/static/novnc/utils/websockify"
+chmod +x "/usr/local/lib/web/frontend$PREFIX_PATH/static/websockify/run"
+
+# clearup
+PASSWORD=+
+HTTP_PASSWORD=
 
 exec /bin/tini -- /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

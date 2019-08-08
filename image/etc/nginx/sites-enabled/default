@@ -4,8 +4,11 @@ server {
 
     #_SSL_PORT_#listen 443 ssl default_server;
     #_SSL_PORT_#listen [::]:443 ssl default_server ipv6only=on;
-    #_SSL_PORT_#ssl_certificate /etc/nginx/ssl/nginx.crt;
-    #_SSL_PORT_#ssl_certificate_key /etc/nginx/ssl/nginx.key;
+    #_SSL_PORT_#ssl_certificate /etc/nginx/ssl/designsafe-exec-01.tacc.utexas.edu.cer;
+    #_SSL_PORT_#ssl_certificate_key /etc/nginx/ssl/designsafe-exec-01.tacc.utexas.edu.key;
+    # ssl on;
+    # ssl_certificate /etc/nginx/ssl/designsafe-exec-01.tacc.utexas.edu.cer;
+    # ssl_certificate_key /etc/nginx/ssl/designsafe-exec-01.tacc.utexas.edu.key;
 
     #_HTTP_PASSWORD_#auth_basic "Private Property";
     #_HTTP_PASSWORD_#auth_basic_user_file /etc/nginx/.htpasswd;

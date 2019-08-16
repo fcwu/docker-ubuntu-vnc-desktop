@@ -109,21 +109,13 @@ COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 
 RUN apt update \
     && apt install -y \
-    python3-pip \
-    python3-dev \
-    python3-setuptools \
-    dirmngr \
     xterm \
     && apt autoclean \
     && apt autoremove \
     && rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb     http://qgis.org/ubuntu bionic main" >> /etc/apt/sources.list
-RUN echo "deb-src http://qgis.org/ubuntu bionic main" >> /etc/apt/sources.list
-
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key CAEB3DC3BDF7FB45
-
-RUN apt update && apt-get install -y qgis python3-qgis qgis-plugin-grass
+# Add our STKO (currently using glxgears as example)
+RUN apt update && apt-get install -y mesa-utils
 
 COPY image /
 EXPOSE 6080

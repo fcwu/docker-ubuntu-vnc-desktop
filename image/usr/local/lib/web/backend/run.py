@@ -114,6 +114,7 @@ def main():
     )
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
     log = logging.getLogger('novnc2')
+
     entrypoint()
 
 

@@ -2,13 +2,14 @@ from __future__ import (
     absolute_import, division, print_function, with_statement
 )
 import re
-from os import environ
+import os
 from flask import (
     Flask,
     request,
     Response,
     jsonify,
     abort,
+    url_for,
 )
 from gevent import subprocess as gsp, spawn, sleep
 from geventwebsocket.exceptions import WebSocketError
@@ -21,12 +22,14 @@ from .log import log
 # Flask app
 app = Flask('novnc2')
 app.config.from_object('config.Default')
-app.config.from_object(environ.get('CONFIG') or 'config.Development')
+app.config.from_object(os.environ.get('CONFIG') or 'config.Development')
 
+PREFIX = os.getenv("PREFIX_PATH")
 
-@app.route('/api/state')
+@app.route(PREFIX+'/api/state')
 @httperror
 def apistate():
+    print(url_for("apistate"))
     state.wait(int(request.args.get('id', -1)), 30)
     state.switch_video(request.args.get('video', 'false') == 'true')
     mystate = state.to_dict()
@@ -36,14 +39,15 @@ def apistate():
     })
 
 
-@app.route('/api/health')
+@app.route(PREFIX+'/api/health')
 def apihealth():
+    print(url_for("apihealth"))
     if state.health:
         return 'success'
     abort(503, 'unhealthy')
 
 
-@app.route('/api/reset')
+@app.route(PREFIX+'/api/reset')
 def reset():
     if 'w' in request.args and 'h' in request.args:
         args = {
@@ -68,7 +72,7 @@ def reset():
     return jsonify({'code': 200})
 
 
-@app.route('/api/live.flv')
+@app.route(PREFIX+'/api/live.flv')
 @httperror
 def liveflv():
     def generate():

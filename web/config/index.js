@@ -5,26 +5,19 @@
 const path = require('path')
 const BACKEND = process.env.BACKEND || 'http://127.0.0.1:6080'
 
-const PREFIX_PATH = process.env.PREFIX_PATH || '/app'
-
-console.log(`within /config/index.js: ${process.env.PREFIX_PATH}`)
-
-const api_key = `${PREFIX_PATH}/api`
-const websockify_key = `${PREFIX_PATH}/websockfiy`
-
 module.exports = {
   dev: {
 
     // Paths
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
+    assetsPublicPath: './',
     proxyTable: {
-      [api_key]: {
+      '/api': {
         target: BACKEND,
         changeOrigin: true,
         secure: false
       },
-      [websockify_key]: {
+      '/websockify': {
         target: BACKEND,
         // logLevel: 'debug',
         ws: true,
@@ -69,8 +62,8 @@ module.exports = {
 
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),
-    assetsSubDirectory: PREFIX_PATH.substr(1)+'/static',
-    assetsPublicPath: '/',
+    assetsSubDirectory: 'static',
+    assetsPublicPath: './',
 
     /**
      * Source Maps

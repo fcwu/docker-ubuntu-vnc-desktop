@@ -5,15 +5,13 @@ REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 # you can choose other base image versions
 IMAGE ?= ubuntu:18.04
-# use tw.archive.ubuntu.com instead of archive.ubuntu.com
-LOCALBUILD ?= 1
 # choose from supported flavors (see available ones in ./flavors/*.yml)
 FLAVOR ?= lxde
 # armhf or amd64
 ARCH ?= amd64
 
 # These files will be generated from teh Jinja templates (.j2 sources)
-templates = Dockerfile image/etc/supervisor/conf.d/supervisord.conf
+templates = Dockerfile rootfs/etc/supervisor/conf.d/supervisord.conf
 
 # Rebuild the container image
 build: $(templates)
@@ -28,6 +26,7 @@ run:
 		-e USER=doro -e PASSWORD=mypassword \
 		-e ALSADEV=hw:2,0 \
 		-e SSL_PORT=443 \
+		-e RELATIVE_URL_ROOT=approot \
 		-v ${PWD}/ssl:/etc/nginx/ssl \
 		--device /dev/snd \
 		--name ubuntu-desktop-lxde-test \

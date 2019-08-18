@@ -1,12 +1,13 @@
-# Built with arch: amd64 flavor: lxde image: ubuntu:18.04 localbuild: 1
+# Built with arch: amd64 flavor: lxde image: ubuntu:18.04
 #
 ################################################################################
 # base system
 ################################################################################
 
-FROM ubuntu:16.04 as system
+FROM ubuntu:18.04 as system
 
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
 
 # built-in packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -24,7 +25,7 @@ RUN apt update \
 RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc\
+        xvfb x11vnc=0.9.16-1 \
         vim-tiny firefox chromium-browser ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
@@ -33,10 +34,11 @@ RUN add-apt-repository -y ppa:fcwu-tw/apps \
 
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine \
+        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+ 
  
  
 # Additional packages require ~600MB
@@ -44,7 +46,7 @@ RUN apt update \
 
 # tini for subreap
 ARG TINI_VERSION=v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-amd64 /bin/tini
 RUN chmod +x /bin/tini
 
 # ffmpeg
@@ -55,8 +57,9 @@ RUN apt update \
     && mkdir /usr/local/ffmpeg \
     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
+
 # python library
-COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
+COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
 RUN apt-get update \
     && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
     && apt-get install -y python-pip python-dev build-essential \
@@ -72,7 +75,9 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-# FROM ubuntu:18.04 as builder
+FROM ubuntu:18.04 as builder
+
+
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
@@ -87,21 +92,24 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
     && apt-get update \
     && apt-get install -y yarn
 
-ARG ABC
-ENV PREFIX_PATH "/app"
-
-COPY image /
-
 # build frontend
 COPY web /src/web
-RUN /etc/install.sh
+RUN cd /src/web \
+    && yarn \
+    && yarn build
 
-LABEL maintainer="Tobias Stein, fcwu.tw@gmail.com"
 
-# COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
-RUN mkdir -p /usr/local/lib/web/frontend
 
-RUN cp -R /src/web/dist/. /usr/local/lib/web/frontend/
+################################################################################
+# merge
+################################################################################
+FROM system
+LABEL maintainer="fcwu.tw@gmail.com"
+
+COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
+COPY rootfs /
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
+	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 EXPOSE 80
 WORKDIR /root

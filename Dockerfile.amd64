@@ -1,4 +1,4 @@
-# Built with arch: amd64 flavor: lxde image: ubuntu:18.04 localbuild: 1
+# Built with arch: amd64 flavor: lxde image: ubuntu:18.04
 #
 ################################################################################
 # base system
@@ -8,7 +8,7 @@ FROM ubuntu:18.04 as system
 
 
 
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
 
 
 # built-in packages
@@ -45,7 +45,7 @@ RUN apt update \
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
-# tini for subreap
+# tini to fix subreap
 ARG TINI_VERSION=v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
@@ -59,7 +59,7 @@ RUN apt update \
     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
 # python library
-COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
+COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
 RUN apt-get update \
     && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
     && apt-get install -y python-pip python-dev build-essential \
@@ -78,7 +78,7 @@ RUN apt-get update \
 FROM ubuntu:18.04 as builder
 
 
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
 
 
 RUN apt-get update \
@@ -98,7 +98,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 COPY web /src/web
 RUN cd /src/web \
     && yarn \
-    && npm run build
+    && yarn build
 
 
 
@@ -109,7 +109,9 @@ FROM system
 LABEL maintainer="fcwu.tw@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
-COPY image /
+COPY rootfs /
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
+	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 EXPOSE 80
 WORKDIR /root

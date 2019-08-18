@@ -1,4 +1,4 @@
-# Built with arch: armhf flavor: lxde image: ubuntu:18.04 localbuild: 1
+# Built with arch: armhf flavor: lxde image: ubuntu:18.04
 #
 ################################################################################
 # base system
@@ -12,7 +12,7 @@ COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
 
 
 
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
 
 
 # built-in packages
@@ -59,7 +59,7 @@ RUN mkdir -p /usr/local/ffmpeg \
     && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
 
 # python library
-COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
+COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
 RUN apt-get update \
     && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
     && apt-get install -y python-pip python-dev build-essential \
@@ -78,7 +78,7 @@ RUN apt-get update \
 FROM ubuntu:18.04 as builder
 
 
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
 
 
 RUN apt-get update \
@@ -111,7 +111,10 @@ FROM system
 LABEL maintainer="fcwu.tw@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
-COPY image /
+COPY rootfs /
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify" "/usr/local/lib/web/frontend/static/novnc/utils/websockify && chmod +x /usr/local/lib/web/frontend/static/websockify/run
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
+	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 EXPOSE 80
 WORKDIR /root

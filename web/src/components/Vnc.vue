@@ -56,7 +56,7 @@ export default {
         'h': h
       }
       try {
-        const response = await this.$http.get(`${process.env.PREFIX_PATH}` + '/api/state', {params: params})
+        const response = await this.$http.get('api/state', {params: params})
         const body = response.data
         if (body.code !== 200) {
           this.stateErrorCount += 1
@@ -71,7 +71,7 @@ export default {
 
         // adaptive resolution
         if (!body.data.config.fixedResolution && body.data.config.sizeChangedCount === 0) {
-          const response = await this.$http.get(`${process.env.PREFIX_PATH}` + '/api/reset', {params: params})
+          const response = await this.$http.get('api/reset', {params: params})
           const body = response.data
           if (body.code !== 200) {
             this.stateErrorCount += 1
@@ -136,9 +136,7 @@ export default {
       // console.trace()
       console.log(`connecting...`)
       this.errorMessage = ''
-      let prefixName = `${process.env.PREFIX_PATH}`.substr(1)
-      console.log(prefixName)
-      let websockifyPath = prefixName + '/websockify'
+      let websockifyPath = 'websockify'
       if (force || this.vncState === 'stopped') {
         this.vncState = 'connecting'
         let hostname = window.location.hostname
@@ -146,7 +144,7 @@ export default {
         if (!port) {
           port = window.location.protocol[4] === 's' ? 443 : 80
         }
-        let url = prefixName + '/static/vnc.html?'
+        let url = 'static/vnc.html?'
         url += 'autoconnect=1&'
         url += `host=${hostname}&port=${port}&`
         url += `path=${websockifyPath}&title=novnc2&`
@@ -157,7 +155,7 @@ export default {
         if (force || this.videoState === 'stopped') {
           const w = this.$refs.vncFrame.clientWidth
           const h = this.$refs.vncFrame.clientHeight
-          let url = prefixName + `/static/video.html?width=${w}&height=${h}&base=${window.location.host}`
+          let url = `static/video.html?width=${w}&height=${h}&base=${window.location.host}`
           this.$refs.videoFrame.setAttribute('src', url)
           this.videoState = 'connecting'
         }

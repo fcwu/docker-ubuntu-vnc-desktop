@@ -24,9 +24,8 @@ app = Flask('novnc2')
 app.config.from_object('config.Default')
 app.config.from_object(os.environ.get('CONFIG') or 'config.Development')
 
-PREFIX = os.getenv("PREFIX_PATH")
 
-@app.route(PREFIX+'/api/state')
+@app.route('/api/state')
 @httperror
 def apistate():
     print(url_for("apistate"))
@@ -39,7 +38,7 @@ def apistate():
     })
 
 
-@app.route(PREFIX+'/api/health')
+@app.route('/api/health')
 def apihealth():
     print(url_for("apihealth"))
     if state.health:
@@ -47,7 +46,7 @@ def apihealth():
     abort(503, 'unhealthy')
 
 
-@app.route(PREFIX+'/api/reset')
+@app.route('/api/reset')
 def reset():
     if 'w' in request.args and 'h' in request.args:
         args = {
@@ -72,7 +71,7 @@ def reset():
     return jsonify({'code': 200})
 
 
-@app.route(PREFIX+'/api/live.flv')
+@app.route('/api/live.flv')
 @httperror
 def liveflv():
     def generate():

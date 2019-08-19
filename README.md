@@ -146,6 +146,7 @@ Troubleshooting and FAQ
 3. Autostart, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/85
 4. x11vnc arguments(multiptr), https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/101
 5. firefox/chrome crash (/dev/shm), https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/112
+6. resize display size without destroying container, https://github.com/fcwu/docker-ubuntu-vnc-desktop/issues/115#issuecomment-522426037
 
 License
 ==================

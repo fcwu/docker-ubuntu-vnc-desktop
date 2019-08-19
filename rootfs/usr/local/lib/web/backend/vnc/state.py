@@ -113,6 +113,9 @@ class State(object):
         except gsp.CalledProcessError as e:
             log.warn('failed to get dispaly size: ' + str(e))
 
+    def reset_size(self):
+        self.size_changed_count = 0
+
     @property
     def w(self):
         return self._w

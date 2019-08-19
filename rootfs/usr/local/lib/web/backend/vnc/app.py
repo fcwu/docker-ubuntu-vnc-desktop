@@ -9,7 +9,6 @@ from flask import (
     Response,
     jsonify,
     abort,
-    url_for,
 )
 from gevent import subprocess as gsp, spawn, sleep
 from geventwebsocket.exceptions import WebSocketError
@@ -28,7 +27,6 @@ app.config.from_object(os.environ.get('CONFIG') or 'config.Development')
 @app.route('/api/state')
 @httperror
 def apistate():
-    print(url_for("apistate"))
     state.wait(int(request.args.get('id', -1)), 30)
     state.switch_video(request.args.get('video', 'false') == 'true')
     mystate = state.to_dict()
@@ -40,7 +38,6 @@ def apistate():
 
 @app.route('/api/health')
 def apihealth():
-    print(url_for("apihealth"))
     if state.health:
         return 'success'
     abort(503, 'unhealthy')
@@ -69,6 +66,13 @@ def reset():
             'errorMessage': 'service is not ready, please restart container'
         })
     return jsonify({'code': 200})
+
+
+@app.route('/resize')
+@httperror
+def apiresize():
+    state.reset_size()
+    return '<html><head><script type = "text/javascript">var h=window.location.href;window.location.href=h.substring(0,h.length-6);</script></head></html>'
 
 
 @app.route('/api/live.flv')

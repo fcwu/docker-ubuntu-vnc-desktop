@@ -105,17 +105,42 @@ FROM system
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 
-# Install QGIS
+# Install STKO
+
+
+RUN apt update \ 
+    && apt upgrade -y \
+    && apt install build-essential -y
 
 RUN apt update \
     && apt install -y \
-    xterm \
-    && apt autoclean \
-    && apt autoremove \
-    && rm -rf /var/lib/apt/lists/*
+    python3-dev \
+    tcl8.6-dev \
+    tk8.6-dev \ 
+    libtogl-dev \
+    libglu1-mesa-dev \
+    freeglut3-dev \
+    mesa-common-dev \
+    mesa-utils \
+    libxi-dev \
+    libxmu-dev \
+    xterm 
 
-# Add our STKO (currently using glxgears as example)
-RUN apt update && apt-get install -y mesa-utils
+RUN apt update \
+    && apt install -y \
+    libxkbcommon-x11-0
+
+# Add stko executable
+ADD STKO-Install /STKO-Install
+# Use/overwrite script so that it uses qt libs that will be installed by online installer
+COPY STKO.sh /STKO-Install/STKO.sh
+
+# Install qt 5.12.4 using online installer
+COPY qt_install_utils/ /qt_temp
+ADD http://download.qt.io/official_releases/qt/5.12/5.12.4/qt-opensource-linux-x64-5.12.4.run /qt_temp/qt-opensource-linux-x64-5.12.4.run
+RUN chmod +x /qt_temp/qt-opensource-linux-x64-5.12.4.run
+RUN /qt_temp/qt-opensource-linux-x64-5.12.4.run --script /qt_temp/qt-installer.qs -platform minimal
+RUN rm -rf /qt_temp
 
 COPY image /
 EXPOSE 6080

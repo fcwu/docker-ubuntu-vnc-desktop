@@ -105,35 +105,52 @@ FROM system
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 
-# Install STKO
+# Install Paraview
 
 
 RUN apt update \ 
     && apt upgrade -y \
     && apt install build-essential -y
 
-RUN apt update \
-    && apt install -y \
-    python3-dev \
-    tcl8.6-dev \
-    tk8.6-dev \ 
-    libtogl-dev \
-    libglu1-mesa-dev \
-    freeglut3-dev \
-    mesa-common-dev \
-    mesa-utils \
-    libxi-dev \
-    libxmu-dev \
-    xterm 
+#old dependencies for STKO:
+#RUN apt update \
+#    && apt install -y \
+#    python3-dev \
+#    tcl8.6-dev \
+#    tk8.6-dev \ 
+#    libtogl-dev \
+#    libglu1-mesa-dev \
+#    freeglut3-dev \
+#    mesa-common-dev \
+#    mesa-utils \
+#    libxi-dev \
+#    libxmu-dev \
+#    xterm 
+
+RUN apt-get update && apt-get install -y wget bzip2 nodejs nodejs-legacy curl gnupg gnupg2 gnupg1 && \
+        wget -q http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
+        bash Miniconda2-latest-Linux-x86_64.sh -p /miniconda -b && \
+        rm Miniconda2-latest-Linux-x86_64.sh && \
+        rm -rf /var/lib/apt/lists/* && \
+        apt-get purge -y wget && \
+        conda install paraview -c bioconda -c conda-forge -y
+RUN curl -sL https://deb.nodesource.com/setup_7.x | bash
+RUN apt-get install -y nodejs protobuf-compiler
+RUN npm install -g pvw-visualizer
+RUN echo $CONDA/lib/paraview-5.2/ > /etc/ld.so.conf.d/paraview.conf && \
+    ldconfig && \
+    mkdir /usr/local/opt/ && \
+    mkdir /Applications
+RUN ldconfig /usr/local/lib /miniconda/lib/paraview-5.2
 
 RUN apt update \
     && apt install -y \
     libxkbcommon-x11-0
 
-# Add stko executable
-ADD STKO-Install /STKO-Install
+# Add paraview executable
+ADD Paraview-Install /Paraview-Install
 # Use/overwrite script so that it uses qt libs that will be installed by online installer
-COPY STKO.sh /STKO-Install/STKO.sh
+COPY Paraview.sh /Paraview-Install/Paraview.sh
 
 # Install qt 5.12.4 using online installer
 COPY qt_install_utils/ /qt_temp

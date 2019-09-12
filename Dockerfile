@@ -127,37 +127,40 @@ RUN apt update \
 #    libxmu-dev \
 #    xterm 
 
-RUN apt-get update && apt-get install -y wget bzip2 nodejs nodejs-legacy curl gnupg gnupg2 gnupg1 && \
-        wget -q http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
-        bash Miniconda2-latest-Linux-x86_64.sh -p /miniconda -b && \
-        rm Miniconda2-latest-Linux-x86_64.sh && \
-        rm -rf /var/lib/apt/lists/* && \
-        apt-get purge -y wget && \
-        conda install paraview -c bioconda -c conda-forge -y
-RUN curl -sL https://deb.nodesource.com/setup_7.x | bash
+RUN apt-get update && apt-get install -y paraview xterm
+      #### Old Paraview installation packages:
+      #  wget bzip2 nodejs nodejs-legacy curl gnupg gnupg2 gnupg1 && \
+      #  wget -q http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
+      #  bash Miniconda2-latest-Linux-x86_64.sh -p /miniconda -b && \
+      #  rm Miniconda2-latest-Linux-x86_64.sh && \
+      #  rm -rf /var/lib/apt/lists/* && \
+      #  apt-get purge -y wget && \
+      #  conda install paraview -c bioconda -c conda-forge -y
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash
 RUN apt-get install -y nodejs protobuf-compiler
 RUN npm install -g pvw-visualizer
-RUN echo $CONDA/lib/paraview-5.2/ > /etc/ld.so.conf.d/paraview.conf && \
-    ldconfig && \
+# RUN echo $CONDA/lib/paraview-5.2/ > /etc/ld.so.conf.d/paraview.conf && \
+RUN ldconfig && \
     mkdir /usr/local/opt/ && \
     mkdir /Applications
-RUN ldconfig /usr/local/lib /miniconda/lib/paraview-5.2
+# RUN ldconfig /usr/local/lib /miniconda/lib/paraview-5.2
 
 RUN apt update \
     && apt install -y \
     libxkbcommon-x11-0
 
 # Add paraview executable
-ADD Paraview-Install /Paraview-Install
+# ADD Paraview.sh /Paraview.sh
+ADD docker-paraviewweb/startup.sh startup.sh
 # Use/overwrite script so that it uses qt libs that will be installed by online installer
-COPY Paraview.sh /Paraview-Install/Paraview.sh
+# COPY Paraview.sh /Paraview-Install/Paraview.sh
 
-# Install qt 5.12.4 using online installer
-COPY qt_install_utils/ /qt_temp
-ADD http://download.qt.io/official_releases/qt/5.12/5.12.4/qt-opensource-linux-x64-5.12.4.run /qt_temp/qt-opensource-linux-x64-5.12.4.run
-RUN chmod +x /qt_temp/qt-opensource-linux-x64-5.12.4.run
-RUN /qt_temp/qt-opensource-linux-x64-5.12.4.run --script /qt_temp/qt-installer.qs -platform minimal
-RUN rm -rf /qt_temp
+## Install qt 5.12.4 using online installer
+#COPY qt_install_utils/ /qt_temp
+#ADD http://download.qt.io/official_releases/qt/5.12/5.12.4/qt-opensource-linux-x64-5.12.4.run /qt_temp/qt-opensource-linux-x64-5.12.4.run
+#RUN chmod +x /qt_temp/qt-opensource-linux-x64-5.12.4.run
+#RUN /qt_temp/qt-opensource-linux-x64-5.12.4.run --script /qt_temp/qt-installer.qs -platform minimal
+#RUN rm -rf /qt_temp
 
 COPY image /
 EXPOSE 6080

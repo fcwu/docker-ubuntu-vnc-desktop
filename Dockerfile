@@ -46,12 +46,12 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/
 RUN chmod +x /bin/tini
 
 # ffmpeg
-# RUN apt update \
-#     && apt install -y --no-install-recommends --allow-unauthenticated \
-#         ffmpeg \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && mkdir /usr/local/ffmpeg \
-#     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
+ RUN apt update \
+     && apt install -y --no-install-recommends --allow-unauthenticated \
+         ffmpeg \
+     && rm -rf /var/lib/apt/lists/* \
+     && mkdir /usr/local/ffmpeg \
+     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
 # python library
 COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
@@ -112,10 +112,12 @@ RUN apt update \
     && apt upgrade -y \
     && apt install build-essential -y
 
-#old dependencies for STKO:
-#RUN apt update \
+# old dependencies for STKO:
+# RUN apt update \
 #    && apt install -y \
 #    python3-dev \
+#    python-pip \
+#    git \
 #    tcl8.6-dev \
 #    tk8.6-dev \ 
 #    libtogl-dev \
@@ -127,7 +129,13 @@ RUN apt update \
 #    libxmu-dev \
 #    xterm 
 
-RUN apt-get update && apt-get install -y paraview xterm
+RUN apt-get update && apt-get install -y xterm
+RUN mkdir paraview
+RUN cd paraview
+RUN wget "https://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v5.6&type=binary&os=Linux&downloadFile=ParaView-5.6.2-MPI-Linux-64bit.tar.gz"
+RUN tar xvfz download.php\?submit\=Download\&version\=v5.6\&type\=binary\&os\=Linux\&downloadFile\=ParaView-5.6.2-MPI-Linux-64bit.tar.gz
+RUN apt-get install -y qt5-default
+RUN ./bin/paraview
       #### Old Paraview installation packages:
       #  wget bzip2 nodejs nodejs-legacy curl gnupg gnupg2 gnupg1 && \
       #  wget -q http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
@@ -144,6 +152,13 @@ RUN ldconfig && \
     mkdir /usr/local/opt/ && \
     mkdir /Applications
 # RUN ldconfig /usr/local/lib /miniconda/lib/paraview-5.2
+
+# RUN mkdir -p /opt/cdatweb
+# ADD . /opt/cdatweb
+# RUN pip install -r /opt/cdatweb/requirements.txt
+
+EXPOSE 8000
+CMD ["python", "/opt/cdatweb/run.py", "--port", "8000", "--upload-directory", "/opt/uvcdat/sample_data"]
 
 RUN apt update \
     && apt install -y \

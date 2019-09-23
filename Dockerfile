@@ -129,13 +129,13 @@ RUN apt update \
 #    libxmu-dev \
 #    xterm 
 
-RUN apt-get update && apt-get install -y xterm
-RUN mkdir paraview
-RUN cd paraview
-RUN wget "https://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v5.6&type=binary&os=Linux&downloadFile=ParaView-5.6.2-MPI-Linux-64bit.tar.gz"
-RUN tar xvfz download.php\?submit\=Download\&version\=v5.6\&type\=binary\&os\=Linux\&downloadFile\=ParaView-5.6.2-MPI-Linux-64bit.tar.gz
+RUN apt-get update && apt-get install -y xterm paraview
+#RUN mkdir paraview
+#RUN cd paraview
+#RUN apt-get install wget
+#RUN wget "https://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v5.6&type=binary&os=Linux&downloadFile=ParaView-5.6.2-MPI-Linux-64bit.tar.gz"
+#RUN tar xvfz download.php\?submit\=Download\&version\=v5.6\&type\=binary\&os\=Linux\&downloadFile\=ParaView-5.6.2-MPI-Linux-64bit.tar.gz 
 RUN apt-get install -y qt5-default
-RUN ./bin/paraview
       #### Old Paraview installation packages:
       #  wget bzip2 nodejs nodejs-legacy curl gnupg gnupg2 gnupg1 && \
       #  wget -q http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
@@ -170,12 +170,10 @@ ADD docker-paraviewweb/startup.sh startup.sh
 # Use/overwrite script so that it uses qt libs that will be installed by online installer
 # COPY Paraview.sh /Paraview-Install/Paraview.sh
 
-## Install qt 5.12.4 using online installer
-#COPY qt_install_utils/ /qt_temp
-#ADD http://download.qt.io/official_releases/qt/5.12/5.12.4/qt-opensource-linux-x64-5.12.4.run /qt_temp/qt-opensource-linux-x64-5.12.4.run
-#RUN chmod +x /qt_temp/qt-opensource-linux-x64-5.12.4.run
-#RUN /qt_temp/qt-opensource-linux-x64-5.12.4.run --script /qt_temp/qt-installer.qs -platform minimal
-#RUN rm -rf /qt_temp
+RUN chmod +x /startup.sh
+CMD /startup.sh
+
+#RUN ./ParaView-5.6.2-MPI-Linux-64bit/bin/paraview
 
 COPY image /
 EXPOSE 6080
@@ -187,6 +185,7 @@ RUN groupadd --gid 816877 G-816877
 RUN useradd --uid 458981 --create-home --shell /bin/bash --user-group --groups G-816877,adm,sudo ubuntu && chown ubuntu:G-816877 /home/ubuntu
 RUN usermod -g G-816877 ubuntu
 RUN mkdir -p /home/ubuntu/.config/pcmanfm/LXDE/ && cp /usr/local/share/doro-lxde-wallpapers/desktop-items-0.conf /home/ubuntu/.config/pcmanfm/LXDE/ && chown -R ubuntu:G-816877 /home/ubuntu/.config
+
 COPY kill.py /
 # COPY /etc/pki/tls/certs/designsafe-exec-01.tacc.utexas.edu.cer /etc/nginx/ssl/
 # COPY /etc/pki/tls/private/designsafe-exec-01.tacc.utexas.edu.key /etc/nginx/ssl/

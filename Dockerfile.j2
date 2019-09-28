@@ -27,11 +27,16 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+{%if image == "ubuntu:18.04"%}
+ENV X11VNC_VERSION=0.9.16-1
+{%else%}
+ENV X11VNC_VERSION=0.9.14-1*
+{%endif%}
 # install debs error if combine together
 RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc=0.9.16-1 \
+        xvfb x11vnc=$X11VNC_VERSION \
         {%for package in addon_packages%}{{package}} {%endfor%} \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \

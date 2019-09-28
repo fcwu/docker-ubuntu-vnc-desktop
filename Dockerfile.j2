@@ -31,6 +31,8 @@ RUN apt update \
 ENV X11VNC_VERSION=0.9.16-1
 {%else%}
 ENV X11VNC_VERSION=0.9.14-1*
+# arc-theme
+RUN add-apt-repository -y ppa:noobslab/themes
 {%endif%}
 # install debs error if combine together
 RUN add-apt-repository -y ppa:fcwu-tw/apps \

@@ -17,7 +17,8 @@ if [ -n "$OPENBOX_ARGS" ]; then
 fi
 
 if [ -n "$RESOLUTION" ]; then
-    sed -i "s/.*exec /usr/bin/Xvfb :1 -screen.*/exec /usr/bin/Xvfb :1 -screen 0 $RESOLUTION/" /usr/local/bin/xvfb.sh
+    NEW=$(echo "exec /usr/bin/Xvfb :1 -screen 0 $RESOLUTION" | sed 's/\//\\\//g')
+    sed -i '/'"-screen"'/s/.*/'"${NEW}"'/' /usr/local/bin/xvfb.sh
 fi
 
 USER=${USER:-root}

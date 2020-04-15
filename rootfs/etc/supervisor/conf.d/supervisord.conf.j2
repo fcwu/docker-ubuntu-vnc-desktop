@@ -58,6 +58,18 @@ user=%USER%
 environment=DISPLAY=":1",HOME="%HOME%",USER="%USER%"
 {% endif %}
 
+{% if desktop == "xfce4" %}
+[group:x]
+programs=xvfb,lxpanel,x11vnc,novnc
+
+[program:lxpanel]
+priority=15
+directory=%HOME%
+command=/usr/bin/startxfce4
+user=%USER%
+environment=DISPLAY=":1",HOME="%HOME%",USER="%USER%"
+{% endif %}
+
 [program:xvfb]
 priority=10
 command=/usr/local/bin/xvfb.sh

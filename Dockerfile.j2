@@ -1,4 +1,4 @@
-# Built with arch: {{ arch }} flavor: {{ flavor }} image: {{ image }} localbuild: {{localbuild }}
+# Built with arch: {{ arch }} flavor: {{ flavor }} image: {{ image }}
 #
 ################################################################################
 # base system
@@ -13,9 +13,7 @@ FROM arm32v7/{{image}} as system
 COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
 {%endif%}
 
-{% if localbuild %}
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
-{% endif %}
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 
 # built-in packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -29,11 +27,18 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+{%if image == "ubuntu:18.04"%}
+ENV X11VNC_VERSION=0.9.16-1
+{%else%}
+ENV X11VNC_VERSION=0.9.14-1*
+# arc-theme
+RUN add-apt-repository -y ppa:noobslab/themes
+{%endif%}
 # install debs error if combine together
 RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc=0.9.16-1 \
+        xvfb x11vnc=$X11VNC_VERSION \
         {%for package in addon_packages%}{{package}} {%endfor%} \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
@@ -46,7 +51,7 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-{%endif%} 
+{%endif%}
 {%if desktop == "lxqt" %}
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
@@ -54,7 +59,15 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-{%endif%} 
+{%endif%}
+{%if desktop == "xfce4" %}
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        xubuntu-desktop \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+{%endif%}
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
@@ -64,11 +77,16 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-{{arc
 RUN chmod +x /bin/tini
 
 # ffmpeg
-RUN mkdir -p /usr/local/ffmpeg \
-    && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /usr/local/ffmpeg \
+    && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
+
 
 # python library
-COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
+COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
 RUN apt-get update \
     && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
     && apt-get install -y python-pip python-dev build-essential \
@@ -86,15 +104,15 @@ RUN apt-get update \
 ################################################################################
 FROM {{image}} as builder
 
-{% if localbuild %}
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+{% if localbuild == 1 %}
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 {% endif %}
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
 
 # nodejs
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y nodejs
 
 # yarn
@@ -107,7 +125,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 COPY web /src/web
 RUN cd /src/web \
     && yarn \
-    && npm run build
+    && yarn build
 
 {%if arch == "armhf"%}
 RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch
@@ -120,7 +138,9 @@ FROM system
 LABEL maintainer="fcwu.tw@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
-COPY image /
+COPY rootfs /
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
+	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 EXPOSE 80
 WORKDIR /root

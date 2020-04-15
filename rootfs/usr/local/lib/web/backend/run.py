@@ -74,7 +74,7 @@ def main():
 
     def run_server():
         import socket
-        from gevent.wsgi import WSGIServer
+        from gevent.pywsgi import WSGIServer
         from vnc.app import app
 
         # websocket conflict: WebSocketHandler
@@ -114,6 +114,7 @@ def main():
     )
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
     log = logging.getLogger('novnc2')
+
     entrypoint()
 
 

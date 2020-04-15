@@ -1,10 +1,14 @@
-# Built with arch: amd64 flavor: lxqt image: ubuntu:18.04 localbuild: tw
+# Built with arch: arm64 flavor: lxde image: ubuntu:18.04
 #
 ################################################################################
 # base system
 ################################################################################
 
-FROM ubuntu:18.04 as system
+# qemu helper for arm build
+FROM ubuntu:18.04 as amd64
+RUN apt update && apt install -y qemu-user-static
+FROM arm64v8/ubuntu:18.04 as system
+COPY --from=amd64 /usr/bin/qemu-aarch64-static /usr/bin/
 
 
 
@@ -27,36 +31,32 @@ RUN apt update \
 RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc=0.9.16-1 \
+        xvfb x11vnc=0.9.13-3 x11vnc-data=0.9.13-3 \
         vim-tiny firefox chromium-browser ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
- 
 
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxqt openbox gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
+        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
- 
+
+
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
-# tini to fix subreap
+# tini for subreap
 ARG TINI_VERSION=v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-amd64 /bin/tini
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-arm64 /bin/tini
 RUN chmod +x /bin/tini
 
 # ffmpeg
-RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
-        ffmpeg \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir /usr/local/ffmpeg \
-    && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
+RUN mkdir -p /usr/local/ffmpeg \
+    && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
 
 # python library
 COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
@@ -98,8 +98,10 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 COPY web /src/web
 RUN cd /src/web \
     && yarn \
-    && yarn build
+    && npm run build
 
+
+RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch
 
 
 ################################################################################
@@ -110,6 +112,7 @@ LABEL maintainer="fcwu.tw@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY rootfs /
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify" "/usr/local/lib/web/frontend/static/novnc/utils/websockify && chmod +x /usr/local/lib/web/frontend/static/websockify/run
 RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
 	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 

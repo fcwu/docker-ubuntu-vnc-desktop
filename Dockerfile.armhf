@@ -1,4 +1,4 @@
-# Built with arch: armhf flavor: lxde image: ubuntu:18.04 localbuild: 1
+# Built with arch: armhf flavor: lxde image: ubuntu:18.04
 #
 ################################################################################
 # base system
@@ -14,7 +14,7 @@ RUN if [ "x$localbuild" != "x" ]; then sed -i 's#http://archive.ubuntu.com/#http
 
 
 
-RUN sed -i 's#http://archive.ubuntu.com/#http://tw.archive.ubuntu.com/#' /etc/apt/sources.list; 
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 
 
 # built-in packages
@@ -24,32 +24,37 @@ ARG APPS="vim-tiny net-tools zenity xz-utils firefox chromium-browser"
 ENV APPS=$APPS
 ARG BUILD_DEPS="build-essential software-properties-common"
 ENV BUILD_DEPS=$BUILD_DEPS
+
+RUN apt update \
+    && apt install -y --no-install-recommends $BUILD_DEPS curl apache2-utils \
+    && apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        supervisor nginx sudo \
+        dbus-x11 x11-utils alsa-utils \
+        mesa-utils libgl1-mesa-dri \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+# install debs error if combine together
+RUN add-apt-repository -y ppa:fcwu-tw/apps \
+    && apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        xvfb x11vnc=0.9.16-1 \
+        $APPS  \
+    && add-apt-repository -r ppa:fcwu-tw/apps \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
-
-# python library
-COPY image/usr/local/lib/web/backend/requirements.txt /tmp/
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends --allow-unauthenticated \
-      $BUILD_DEPS apache2-utils curl supervisor nginx sudo  \
-      dbus-x11 x11-utils alsa-utils \
-      mesa-utils libgl1-mesa-dri \
-      lxqt openbox xvfb x11vnc \
-      gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf arc-theme \
-      ttf-ubuntu-font-family ttf-wqy-zenhei \
-      $APPS \
-    && add-apt-repository -r ppa:fcwu-tw/apps \
-    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
-    && apt-get install -y python-dev python-pip \
-    && pip install setuptools wheel && pip install -r /tmp/requirements.txt \
-    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
-    && apt-get remove -y python-pip `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
-    && apt-get purge -y --auto-remove $BUILD_DEPS \
-    && apt-get autoclean \
-    && apt-get autoremove \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 
 # tini for subreap
 ARG TINI_VERSION=v0.18.0
@@ -59,14 +64,43 @@ RUN chmod +x /bin/tini
 
 # ffmpeg
 RUN mkdir -p /usr/local/ffmpeg \
-    && curl -sSL --http1.1 https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1 \
-    && rm -rf /usr/local/ffmpeg/manpages
+    && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar xJvf - -C /usr/local/ffmpeg/ --strip 1
+
+# python library
+COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
+RUN apt-get update \
+    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
+    && apt-get install -y python-pip python-dev \
+	&& pip install setuptools wheel && pip install -r /tmp/requirements.txt \
+    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
+    && apt-get remove -y `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
 
 
 ################################################################################
 # builder
 ################################################################################
-FROM node:8-alpine as builder
+FROM ubuntu:18.04 as builder
+
+
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
+
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
+
+# nodejs
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+    && apt-get install -y nodejs
+
+# yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+    && apt-get update \
+    && apt-get install -y yarn
 
 # build frontend
 COPY web /src/web
@@ -91,7 +125,10 @@ FROM system
 LABEL maintainer="fcwu.tw@gmail.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
-COPY image /
+COPY rootfs /
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify" "/usr/local/lib/web/frontend/static/novnc/utils/websockify && chmod +x /usr/local/lib/web/frontend/static/websockify/run
+RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
+	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 EXPOSE 80
 WORKDIR /root

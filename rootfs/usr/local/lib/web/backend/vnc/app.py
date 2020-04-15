@@ -2,7 +2,7 @@ from __future__ import (
     absolute_import, division, print_function, with_statement
 )
 import re
-from os import environ
+import os
 from flask import (
     Flask,
     request,
@@ -21,7 +21,7 @@ from .log import log
 # Flask app
 app = Flask('novnc2')
 app.config.from_object('config.Default')
-app.config.from_object(environ.get('CONFIG') or 'config.Development')
+app.config.from_object(os.environ.get('CONFIG') or 'config.Development')
 
 
 @app.route('/api/state')
@@ -47,8 +47,8 @@ def apihealth():
 def reset():
     if 'w' in request.args and 'h' in request.args:
         args = {
-            'w': request.args.get('w'),
-            'h': request.args.get('h'),
+            'w': int(request.args.get('w')),
+            'h': int(request.args.get('h')),
         }
         state.set_size(args['w'], args['h'])
 
@@ -66,6 +66,13 @@ def reset():
             'errorMessage': 'service is not ready, please restart container'
         })
     return jsonify({'code': 200})
+
+
+@app.route('/resize')
+@httperror
+def apiresize():
+    state.reset_size()
+    return '<html><head><script type = "text/javascript">var h=window.location.href;window.location.href=h.substring(0,h.length-6);</script></head></html>'
 
 
 @app.route('/api/live.flv')

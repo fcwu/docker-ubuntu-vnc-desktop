@@ -99,6 +99,7 @@ COPY web /src/web
 RUN cd /src/web \
     && yarn \
     && npm run build
+RUN sed -i 's#app/locale/#novnc/app/locale/#' /src/web/dist/static/novnc/app/ui.js
 
 
 RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch

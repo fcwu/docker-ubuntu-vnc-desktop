@@ -107,6 +107,7 @@ COPY web /src/web
 RUN cd /src/web \
     && yarn \
     && yarn run build
+RUN sed -i 's#app/locale/#novnc/app/locale/#' /src/web/dist/static/novnc/app/ui.js
 
 # build frontend
 COPY web /src/web

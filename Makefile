@@ -4,7 +4,7 @@
 REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 # you can choose other base image versions
-IMAGE ?= ubuntu:18.04
+IMAGE ?= ubuntu:20.04
 # choose from supported flavors (see available ones in ./flavors/*.yml)
 FLAVOR ?= lxde
 # armhf or amd64
@@ -20,7 +20,7 @@ build: $(templates)
 # Test run the container
 #  the local dir will be mounted under /src read-only
 run:
-	docker run --rm \
+	docker run --privileged --rm \
 		-p 6080:80 -p 6081:443 \
 		-v ${PWD}:/src:ro \
 		-e USER=doro -e PASSWORD=mypassword \

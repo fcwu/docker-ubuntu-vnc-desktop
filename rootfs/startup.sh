@@ -13,7 +13,7 @@ if [ -n "$X11VNC_ARGS" ]; then
 fi
 
 if [ -n "$OPENBOX_ARGS" ]; then
-    sed -i "s#^command=/usr/bin/openbox.*#& ${OPENBOX_ARGS}#" /etc/supervisor/conf.d/supervisord.conf
+    sed -i "s#^command=/usr/bin/openbox\$#& ${OPENBOX_ARGS}#" /etc/supervisor/conf.d/supervisord.conf
 fi
 
 if [ -n "$RESOLUTION" ]; then

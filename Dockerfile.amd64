@@ -47,6 +47,16 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
+ADD https://dl.winehq.org/wine-builds/winehq.key /Release.key
+
+RUN echo "deb http://dl.winehq.org/wine-builds/ubuntu/ xenial main" >> /etc/apt/sources.list && \
+        apt-key add Release.key && \
+        dpkg --add-architecture i386 && \
+        apt-get update && \
+        apt-get install -y --install-recommends apt-utils winehq-devel && \
+        rm -rf /var/lib/apt/lists/* /Release.key
+
+ENV WINEARCH win32
 
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw

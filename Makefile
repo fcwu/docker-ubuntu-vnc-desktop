@@ -4,7 +4,8 @@
 REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 # you can choose other base image versions
-IMAGE ?= ubuntu:18.04
+IMAGE ?= ubuntu:20.04
+# IMAGE ?= nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
 # choose from supported flavors (see available ones in ./flavors/*.yml)
 FLAVOR ?= lxde
 # armhf or amd64
@@ -18,15 +19,16 @@ build: $(templates)
 	docker build -t $(REPO):$(TAG) .
 
 # Test run the container
-#  the local dir will be mounted under /src read-only
+# the local dir will be mounted under /src read-only
 run:
-	docker run --rm \
+	docker run --privileged --rm \
 		-p 6080:80 -p 6081:443 \
 		-v ${PWD}:/src:ro \
 		-e USER=doro -e PASSWORD=mypassword \
 		-e ALSADEV=hw:2,0 \
 		-e SSL_PORT=443 \
 		-e RELATIVE_URL_ROOT=approot \
+		-e OPENBOX_ARGS="--startup /usr/bin/galculator" \
 		-v ${PWD}/ssl:/etc/nginx/ssl \
 		--device /dev/snd \
 		--name ubuntu-desktop-lxde-test \

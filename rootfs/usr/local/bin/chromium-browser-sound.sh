@@ -5,4 +5,4 @@ if [ -z "$ALSADEV" ]; then
     exit 1
 fi
 
-exec /usr/bin/chromium-browser --no-sandbox --alsa-output-device="$ALSADEV" "$@"
+exec /usr/bin/google-chrome --no-sandbox --alsa-output-device="$ALSADEV" "$@"

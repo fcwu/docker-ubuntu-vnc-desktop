@@ -151,7 +151,7 @@ def liveflv():
             cmd,
             stdout=gsp.PIPE,
             stderr=gsp.PIPE,
-            env={k: str(v) for k, v in xenvs.iteritems()},
+            env={k: str(v) for k, v in xenvs.items()},
         )
 
         def readerr(f):

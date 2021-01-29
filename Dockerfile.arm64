@@ -12,7 +12,11 @@ COPY --from=amd64 /usr/bin/qemu-aarch64-static /usr/bin/
 
 
 
+<<<<<<< HEAD
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
+=======
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
+>>>>>>> develop
 
 
 # built-in packages
@@ -44,8 +48,13 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+<<<<<<< HEAD
  
  
+=======
+
+
+>>>>>>> develop
 # Additional packages require ~600MB
 # libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
 
@@ -78,14 +87,22 @@ RUN apt-get update \
 FROM ubuntu:18.04 as builder
 
 
+<<<<<<< HEAD
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; 
+=======
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
+>>>>>>> develop
 
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
 
 # nodejs
+<<<<<<< HEAD
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+=======
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+>>>>>>> develop
     && apt-get install -y nodejs
 
 # yarn
@@ -99,6 +116,10 @@ COPY web /src/web
 RUN cd /src/web \
     && yarn \
     && npm run build
+<<<<<<< HEAD
+=======
+RUN sed -i 's#app/locale/#novnc/app/locale/#' /src/web/dist/static/novnc/app/ui.js
+>>>>>>> develop
 
 
 RUN cd /src/web/dist/static/novnc && patch -p0 < /src/web/novnc-armhf-1.patch

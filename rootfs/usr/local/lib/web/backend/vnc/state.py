@@ -31,7 +31,7 @@ class State(object):
         output = gsp.check_output([
             'supervisorctl', '-c', '/etc/supervisor/supervisord.conf',
             'status'
-        ])
+        ], encoding='UTF-8')
         for line in output.strip().split('\n'):
             if not line.startswith('web') and line.find('RUNNING') < 0:
                 health = False
@@ -65,7 +65,7 @@ class State(object):
             'sed -i \'s#'
             '^exec /usr/bin/Xvfb.*$'
             '#'
-            'exec /usr/bin/Xvfb :1 -screen 0 {}x{}x16'
+            'exec /usr/bin/Xvfb :1 -screen 0 {}x{}x24'
             '#\' /usr/local/bin/xvfb.sh'
         ).format(w, h), shell=True)
         self.size_changed_count += 1

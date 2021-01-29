@@ -13,28 +13,30 @@ server {
 	root /usr/local/lib/web/frontend/;
 	index index.html index.htm;
 
-	location ~ /api/ {
-		try_files $uri @api;
-	}
-
-	location ~ /resize$ {
-		try_files $uri @api;
-	}
-
 	#_RELATIVE_URL_ROOT_location /_RELATIVE_URL_ROOT_/ {
 	#_RELATIVE_URL_ROOT_	rewrite /_RELATIVE_URL_ROOT_/(.*) /$1 break;
 	#_RELATIVE_URL_ROOT_	root /usr/local/lib/web/frontend/;
 	#_RELATIVE_URL_ROOT_}
 
-	location ~ /websockify$ {
+	location ~ .*/(api/.*|websockify) {
+		try_files $uri @api$http_upgrade;
+	}
+
+	location / {
+		rewrite /approot/(.*) /$1 break;
+		root /usr/local/lib/web/frontend/;
+	}
+
+	location @apiwebsocket {
 		#_RELATIVE_URL_ROOT_rewrite /_RELATIVE_URL_ROOT_/(.*) $1 break;
+		proxy_connect_timeout       7d;
+		proxy_send_timeout          7d;
+		proxy_read_timeout          7d;
+		proxy_buffering                         off;
+
 		proxy_http_version 1.1;
 		proxy_set_header Upgrade $http_upgrade;
 		proxy_set_header Connection "upgrade";
-		proxy_buffering off;
-		proxy_connect_timeout   7d;
-		proxy_send_timeout      7d;
-		proxy_read_timeout      7d;
 		proxy_pass http://127.0.0.1:6081;
 	}
 
@@ -43,8 +45,8 @@ server {
 		proxy_set_header X-Real-IP  $remote_addr;
 		proxy_set_header X-Forwarded-For $remote_addr;
 		proxy_set_header Host $host;
-		proxy_pass http://127.0.0.1:6079;
 		max_ranges 0;
+		proxy_pass http://127.0.0.1:6079;
 	}
 }
 

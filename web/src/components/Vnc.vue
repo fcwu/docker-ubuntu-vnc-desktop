@@ -136,7 +136,7 @@ export default {
       // console.trace()
       console.log(`connecting...`)
       this.errorMessage = ''
-      let websockifyPath = 'websockify'
+      let websockifyPath = location.pathname.substr(1) + 'websockify'
       if (force || this.vncState === 'stopped') {
         this.vncState = 'connecting'
         let hostname = window.location.hostname

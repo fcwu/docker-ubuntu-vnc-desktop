@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import (
     absolute_import, division, print_function, with_statement
 )
@@ -74,7 +74,7 @@ def main():
 
     def run_server():
         import socket
-        from gevent.wsgi import WSGIServer
+        from gevent.pywsgi import WSGIServer
         from vnc.app import app
 
         # websocket conflict: WebSocketHandler

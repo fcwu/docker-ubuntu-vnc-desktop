@@ -28,7 +28,7 @@ RUN add-apt-repository -y ppa:fcwu-tw/apps \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
         xvfb x11vnc=0.9.16-1 \
-        vim-tiny firefox chromium-browser ttf-ubuntu-font-family ttf-wqy-zenhei  \
+        vim-tiny firefox ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && add-apt-repository -r ppa:fcwu-tw/apps \
     && apt autoclean -y \
     && apt autoremove -y \
@@ -41,36 +41,27 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
+################################################################################
+# certum crypto
+################################################################################
 
-# Additional packages require ~600MB
-# libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
+RUN apt-get update && apt-get upgrade -y 
 
-# tini to fix subreap
-ARG TINI_VERSION=v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
-RUN chmod +x /bin/tini
+RUN dpkg --configure -a
+RUN apt-get install pcscd libusb-1.0-0-dev pcsc-tools unzip curl lshw wget -y
+RUN dpkg --configure -a
 
-# ffmpeg
-RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
-        ffmpeg \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir /usr/local/ffmpeg \
-    && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
+RUN curl https://www.acs.com.hk/download-driver-unified/11929/ --output ACS-Unified-PKG-Lnx-118-P.zip
 
-# python library
-COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
-RUN apt-get update \
-    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
-    && apt-get install -y python-pip python-dev build-essential \
-	&& pip install setuptools wheel && pip install -r /tmp/requirements.txt \
-    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
-    && apt-get remove -y `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
-    && apt-get autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
+RUN unzip ACS-Unified-PKG-Lnx-118-P.zip
+RUN apt install "ACS-Unified-PKG-Lnx-118-P/ubuntu/bionic/libacsccid1_1.1.8-1~ubuntu18.04.1_amd64.deb" -y
+RUN apt install -f
 
+RUN apt update --fix-missing && apt upgrade
+
+RUN wget https://files.certum.eu/software/SimplySignDesktop/Linux-Ubuntu/2.9.6-8.2.1.1/SimplySignDesktop-2.9.6-8.2.1.1-x86_64-prod.bin
+
+RUN chmod +x SimplySignDesktop-2.9.6-8.2.1.1-x86_64-prod.bin
 
 ################################################################################
 # builder
@@ -113,6 +104,8 @@ COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
 COPY rootfs /
 RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
 	chmod +x /usr/local/lib/web/frontend/static/websockify/run
+
+
 
 EXPOSE 80
 WORKDIR /root

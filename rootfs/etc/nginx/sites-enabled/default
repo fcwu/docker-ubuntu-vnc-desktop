@@ -18,7 +18,7 @@ server {
 	#_RELATIVE_URL_ROOT_	root /usr/local/lib/web/frontend/;
 	#_RELATIVE_URL_ROOT_}
 
-	location ~ .*/(api/.*|websockify) {
+	location ~ .*/(api/.*|websockify|resize) {
 		try_files $uri @api$http_upgrade;
 	}
 

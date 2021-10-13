@@ -5,9 +5,11 @@
 ################################################################################
 
 # qemu helper for arm build
-FROM ubuntu:20.04 as amd64
+ARG DOCKER_BASE_IMAGE
+
+FROM ${DOCKER_BASE_IMAGE} as amd64
 RUN apt update && apt install -y qemu-user-static
-FROM arm64v8/ubuntu:20.04 as system
+FROM arm64v8/${DOCKER_BASE_IMAGE} as system
 COPY --from=amd64 /usr/bin/qemu-aarch64-static /usr/bin/
 
 
@@ -79,7 +81,7 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:20.04 as builder
+FROM ${DOCKER_BASE_IMAGE} as builder
 
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;

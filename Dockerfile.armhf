@@ -1,13 +1,15 @@
-# Built with arch: armhf flavor: lxde image: ubuntu:18.04
+# Built with arch: armhf flavor: lxde image: ${DOCKER_BASE_IMAGE}
 #
 ################################################################################
 # base system
 ################################################################################
 
+ARG DOCKER_BASE_IMAGE
+
 # qemu helper for arm build
-FROM ubuntu:18.04 as amd64
+FROM ${DOCKER_BASE_IMAGE} as amd64
 RUN apt update && apt install -y qemu-user-static
-FROM arm32v7/ubuntu:18.04 as system
+FROM arm32v7/${DOCKER_BASE_IMAGE} as system
 COPY --from=amd64 /usr/bin/qemu-arm-static /usr/bin/
 
 
@@ -75,7 +77,7 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:18.04 as builder
+FROM ${DOCKER_BASE_IMAGE} as builder
 
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;

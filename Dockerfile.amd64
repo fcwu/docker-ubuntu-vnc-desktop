@@ -1,10 +1,10 @@
-# Built with arch: amd64 flavor: lxde image: ubuntu:20.04
+# Built with arch: amd64 flavor: lxde image: ${DOCKER_BASE_IMAGE}
 #
 ################################################################################
 # base system
 ################################################################################
-
-FROM ubuntu:20.04 as system
+ARG DOCKER_BASE_IMAGE
+FROM ${DOCKER_BASE_IMAGE} as system
 
 
 
@@ -82,7 +82,7 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:20.04 as builder
+FROM ${DOCKER_BASE_IMAGE} as builder
 
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;

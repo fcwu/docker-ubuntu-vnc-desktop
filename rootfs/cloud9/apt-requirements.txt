@@ -1,0 +1,35 @@
+# System Packages
+#systemctl << Breaks system
+sudo
+net-tools
+locate
+curl
+vim
+#vim-tiny
+wget
+lsb-release
+iputils-ping
+dnsutils
+telnet
+less
+util-linux
+xfce4-terminal
+
+# Cloud9
+git
+ruby
+locales-all
+tmux
+nodejs
+python2.7
+build-essential
+npm
+
+# Docker
+gnupg
+    
+# Additional Software
+libreoffice
+pinta
+firefox
+#chrome?

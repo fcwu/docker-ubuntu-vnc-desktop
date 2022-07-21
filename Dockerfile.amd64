@@ -6,15 +6,25 @@
 
 FROM ubuntu:20.04 as system
 
-
-
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
+
+# Copy files
+COPY rootfs /
+
+# Ca-Certificates
+RUN apt update \
+    && apt install -y --no-install-recommends --allow-unauthenticated \
+        ca-certificates \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # built-in packages
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update \
-    && apt install -y --no-install-recommends software-properties-common curl apache2-utils \
+    && apt install -y --no-install-recommends apt-utils software-properties-common curl \
+           apache2-utils man-db manpages-posix manpages-dev manpages-posix-dev \
     && apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
         supervisor nginx sudo net-tools zenity xz-utils \
@@ -23,35 +33,32 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+    
 # install debs error if combine together
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc \
-        vim-tiny firefox ttf-ubuntu-font-family ttf-wqy-zenhei  \
+        xvfb x11vnc ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt update \
-    && apt install -y gpg-agent \
-    && curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && (dpkg -i ./google-chrome-stable_current_amd64.deb || apt-get install -fy) \
-    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add \
-    && rm google-chrome-stable_current_amd64.deb \
-    && rm -rf /var/lib/apt/lists/*
+#RUN apt update \
+#    && apt install -y gpg-agent \
+#    && curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+#    && (dpkg -i ./google-chrome-stable_current_amd64.deb || apt-get install -fy) \
+#    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add \
+#    && rm google-chrome-stable_current_amd64.deb \
+#    && rm -rf /var/lib/apt/lists/*
 
+# Install Desktop
 RUN apt update \
     && apt install -y --no-install-recommends --allow-unauthenticated \
-        lxde gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+        xubuntu-desktop gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Additional packages require ~600MB
-# libreoffice  pinta language-pack-zh-hant language-pack-gnome-zh-hant firefox-locale-zh-hant libreoffice-l10n-zh-tw
-
-# tini to fix subreap
+# tini service manager
 ARG TINI_VERSION=v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
 RUN chmod +x /bin/tini
@@ -77,6 +84,23 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
+
+# Install Additonal Packages
+RUN apt update \
+    && grep -v '^#' /cloud9/apt-requirements.txt | xargs apt install -y --no-install-recommends --allow-unauthenticated \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /workspace
+
+# Clone and install cloud9
+RUN git clone https://github.com/c9/core.git /cloud9/c9sdk
+RUN mkdir -p /cloud9/c9sdk/build /workspace/.ubuntu/.standalone
+RUN ln -sf /workspace/.ubuntu/.standalone /cloud9/c9sdk/build/standalone
+RUN /cloud9/c9sdk/scripts/install-sdk.sh
+RUN cd /cloud9/c9sdk && git reset --hard
+RUN wget -P /cloud9/ -O user-install.sh https://raw.githubusercontent.com/c9/install/master/install.sh
 
 
 ################################################################################
@@ -114,15 +138,17 @@ RUN sed -i 's#app/locale/#novnc/app/locale/#' /src/web/dist/static/novnc/app/ui.
 # merge
 ################################################################################
 FROM system
-LABEL maintainer="fcwu.tw@gmail.com"
+LABEL maintainer="info@devindice.com"
 
 COPY --from=builder /src/web/dist/ /usr/local/lib/web/frontend/
-COPY rootfs /
+
 RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
 	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
 EXPOSE 80
-WORKDIR /root
+EXPOSE 9999
+
+WORKDIR /workspace
 ENV HOME=/home/ubuntu \
     SHELL=/bin/bash
 HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://127.0.0.1:6079/api/health

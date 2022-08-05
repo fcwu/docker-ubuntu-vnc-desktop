@@ -20,6 +20,14 @@ if [ -n "$RESOLUTION" ]; then
     sed -i "s/1024x768/$RESOLUTION/" /usr/local/bin/xvfb.sh
 fi
 
+if [ -n "$TZ" ]; then
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    dpkg-reconfigure --frontend noninteractive tzdata
+fi
+
+
+#sed -i "s#/usr/share/backgrounds.*#/usr/share/backgrounds/default.png\"/>#g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+
 USER=${USER:-root}
 HOME=/root
 if [ "$USER" != "root" ]; then
@@ -28,6 +36,10 @@ if [ "$USER" != "root" ]; then
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""
         PASSWORD=ubuntu
+    elif [[ "$PASSWORD" == "randomize" ]]; then
+        echo "  set random default password"
+        
+        PASSWORD=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
     fi
     HOME=/home/$USER
     echo "$USER:$PASSWORD" | chpasswd
@@ -36,13 +48,6 @@ if [ "$USER" != "root" ]; then
     [ -d "/dev/snd" ] && chgrp -R adm /dev/snd
 fi
 sed -i -e "s|%USER%|$USER|" -e "s|%HOME%|$HOME|" /etc/supervisor/conf.d/supervisord.conf
-
-# home folder
-if [ ! -x "$HOME/.config/pcmanfm/LXDE/" ]; then
-    mkdir -p $HOME/.config/pcmanfm/LXDE/
-    ln -sf /usr/local/share/doro-lxde-wallpapers/desktop-items-0.conf $HOME/.config/pcmanfm/LXDE/
-    chown -R $USER:$USER $HOME
-fi
 
 # nginx workers
 sed -i 's|worker_processes .*|worker_processes 1;|' /etc/nginx/nginx.conf
@@ -72,4 +77,93 @@ fi
 PASSWORD=
 HTTP_PASSWORD=
 
+
+# cloud9
+cp /cloud9/bashrc.default /home/$USER/.bashrc
+mkdir -p /workspace/.$USER/.standalone
+mkdir -p /workspace/.$USER/.c9
+USER_SETTINGS="/workspace/.$USER/user.settings"
+if [ ! -f $USER_SETTINGS ]; then touch $USER_SETTINGS; fi
+ln -sf $USER_SETTINGS /home/$USER/.c9/user.settings
+
+# Symlink SSH keys
+mkdir -p /workspace/.$USER/.ssh 
+chmod 700 /workspace/.$USER/.ssh
+ln -sf /workspace/.$USER/.ssh /home/$USER/.ssh
+
+if [ -n "$DOMAIN" ]; then
+    DOMAIN="cloud9.example.com"
+fi
+chown -R $USER:$USER /home/$USER /cloud9 /workspace
+
+# Add required packages for ubuntu user (Run as user)
+
+mkdir -p /workspace/.c9
+chown $USER:$USER /workspace/.c9 
+sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /workspace/.c9/install.log &
+
+chown $USER /usr/share/applications/
+
+# Setup Backgrounds
+mkdir -p /workspace/.ubuntu/dynamic-background/active/
+for BACKGROUND in $(ls -1 /usr/share/backgrounds/dynamic-background/ | grep -v -e "active" -e "default" ); do
+    cp -r /usr/share/backgrounds/dynamic-background/$BACKGROUND /workspace/.ubuntu/dynamic-background/
+done
+if [ ! "$(ls -A /workspace/.ubuntu/dynamic-background/active/ )" ]; then
+    cp -r /usr/share/backgrounds/dynamic-background/default/* /workspace/.ubuntu/dynamic-background/active
+fi
+
+# Check when DBUS is active and start configuring. 
+until [[ $SUCCESS == "TRUE" ]]; do
+    SUCCESS="FALSE"
+    if TEST=$(netstat -xeW | grep dbus 2>&1); then
+        sleep 5
+        SUCCESS="TRUE"
+        DBUS_ADDRESS=$(netstat -xeW | grep dbus | head -n 1 | awk '{print $(NF)}' | sed "s/@//g")
+        echo "DBUS Session Address: $DBUS_ADDRESS"
+        echo "$DBUS_ADDRESS" > /var/log/dbus.txt
+        export DBUS_SESSION_BUS_ADDRESS="unix:abstract=$DBUS_ADDRESS"
+        export DISPLAY=:1.0
+
+        # Hide Lower Panel, Temp Removal
+        su $USER -c "xfconf-query -c xfce4-panel -p /panels -t int -s 1 -a 2>&1>/workspace/log"
+
+        # Set branding
+        if [ -n "$MENU_NAME" ]; then
+            su $USER -c "xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-title -n -t string -s '$MENU_NAME'"
+        fi
+        if [ -n "$MENU_ICON" ]; then
+            su $USER -c "xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -n -t string -s '$MENU_ICON'"
+        fi
+        
+# Add option to hide menu icons
+        
+        # Remove plugins
+        su $USER -c "
+            # Copy Existing Array
+            ARRAY=();
+            for ID in \$(xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids | tail -n +3); do ARRAY+=( \$ID ); done;
+
+            # For loops to remove item from array
+            for PLUGIN_NAME in actions pager; do
+                PLUGIN=\$(xfconf-query -c xfce4-panel -p /plugins -lv | grep \$PLUGIN_NAME | awk '{print \$1}')
+                DELETE=\$(echo \$PLUGIN | sed 's/.*plugin-//g')
+                ARRAY=( \${ARRAY[@]/\$DELETE} )
+            done;
+
+            # Update Panel Plugin Array
+            UPDATE_PANEL_PLUGINS='xfconf-query -c xfce4-panel -p /panels/panel-1/plugin-ids'
+            for INT in \${ARRAY[@]}; do
+                UPDATE_PANEL_PLUGINS+=\" -t int -s \$INT\"
+            done
+            \$UPDATE_PANEL_PLUGINS
+        "
+        # Reload Panel
+        su $USER -c "xfce4-panel -r"
+    fi
+    sleep 1
+done &
+
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf
+
+

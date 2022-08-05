@@ -8,12 +8,9 @@ FROM ubuntu:20.04 as system
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 
-# Copy files
-COPY rootfs /
-
 # Ca-Certificates
 RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
         ca-certificates \
     && apt autoclean -y \
     && apt autoremove -y \
@@ -23,10 +20,10 @@ RUN apt update \
 # built-in packages
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update \
-    && apt install -y --no-install-recommends apt-utils software-properties-common curl \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends apt-utils software-properties-common curl \
            apache2-utils man-db manpages-posix manpages-dev manpages-posix-dev \
     && apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
         supervisor nginx sudo net-tools zenity xz-utils \
         dbus-x11 x11-utils alsa-utils \
         mesa-utils libgl1-mesa-dri \
@@ -36,7 +33,7 @@ RUN apt update \
     
 # install debs error if combine together
 RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
         xvfb x11vnc ttf-ubuntu-font-family ttf-wqy-zenhei  \
     && apt autoclean -y \
     && apt autoremove -y \
@@ -52,7 +49,7 @@ RUN apt update \
 
 # Install Desktop
 RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
         xubuntu-desktop gtk2-engines-murrine gnome-themes-standard gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
     && apt autoclean -y \
     && apt autoremove -y \
@@ -65,7 +62,7 @@ RUN chmod +x /bin/tini
 
 # ffmpeg
 RUN apt update \
-    && apt install -y --no-install-recommends --allow-unauthenticated \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
         ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir /usr/local/ffmpeg \
@@ -86,8 +83,10 @@ RUN apt-get update \
     && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
 
 # Install Additonal Packages
+RUN mkdir /cloud9
+COPY rootfs/cloud9/apt-requirements.txt /cloud9/apt-requirements.txt
 RUN apt update \
-    && grep -v '^#' /cloud9/apt-requirements.txt | xargs apt install -y --no-install-recommends --allow-unauthenticated \
+    && grep -v '^#' /cloud9/apt-requirements.txt | xargs apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
@@ -100,7 +99,7 @@ RUN mkdir -p /cloud9/c9sdk/build /workspace/.ubuntu/.standalone
 RUN ln -sf /workspace/.ubuntu/.standalone /cloud9/c9sdk/build/standalone
 RUN /cloud9/c9sdk/scripts/install-sdk.sh
 RUN cd /cloud9/c9sdk && git reset --hard
-RUN wget -P /cloud9/ -O user-install.sh https://raw.githubusercontent.com/c9/install/master/install.sh
+RUN wget -O user-install.sh https://raw.githubusercontent.com/c9/install/master/install.sh && mv user-install.sh /cloud9/
 
 
 ################################################################################
@@ -153,3 +152,8 @@ ENV HOME=/home/ubuntu \
     SHELL=/bin/bash
 HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://127.0.0.1:6079/api/health
 ENTRYPOINT ["/startup.sh"]
+
+RUN apt update && apt install -y menulibre
+
+# Copy files
+COPY rootfs /

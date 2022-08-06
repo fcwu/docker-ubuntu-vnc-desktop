@@ -126,18 +126,21 @@ until [[ $SUCCESS == "TRUE" ]]; do
         export DISPLAY=:1.0
 
         # Hide Lower Panel, Temp Removal
-        su $USER -c "xfconf-query -c xfce4-panel -p /panels -t int -s 1 -a 2>&1>/workspace/log"
+        su $USER -c "xfconf-query -c xfce4-panel -p /panels -t int -s 1 -a"
 
         # Set branding
         if [ -n "$MENU_NAME" ]; then
-            su $USER -c "xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-title -n -t string -s '$MENU_NAME'"
+            su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/button-title -t string -s '$MENU_NAME'"
         fi
         if [ -n "$MENU_ICON" ]; then
-            su $USER -c "xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -n -t string -s '$MENU_ICON'"
+            su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/button-icon -t string -s '$MENU_ICON'"
         fi
         
-# Add option to hide menu icons
-        
+        # Hide menu icons
+        if [ -n "$SHOW_MENU_ICONS" ]; then
+            su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-menu-icons -t bool -s '$SHOW_MENU_ICONS'"
+        fi
+
         # Remove plugins
         su $USER -c "
             # Copy Existing Array

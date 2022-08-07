@@ -187,7 +187,8 @@ done &
 DOCKER_CREDS=/workspace/.ubuntu/docker_creds
 if test -f "$DOCKER_CREDS"; then
     echo "DOCKER_CREDS exists."
-    su $USER -c "DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo \$DOCKER_PASS | docker login --username \$DOCKER_USER --password-stdin)"
+    #su $USER -c "DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo \$DOCKER_PASS | docker login --username \$DOCKER_USER --password-stdin)"
+    DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
 fi
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

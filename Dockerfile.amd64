@@ -155,5 +155,7 @@ ENTRYPOINT ["/startup.sh"]
 
 RUN apt update && apt install -y menulibre
 
+RUN npm -g install sass yuglify
+
 # Copy files
 COPY rootfs /

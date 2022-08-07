@@ -81,6 +81,9 @@ HTTP_PASSWORD=
 cp /cloud9/bashrc.default /home/$USER/.bashrc
 chown -R $USER:$USER /home/$USER/.bashrc
 
+# Gitconfig
+touch /workspace/.ubuntu/gitconfig
+ln -sf /workspace/.ubuntu/gitconfig /home/$USER/.gitconfig
 
 # cloud9
 cp /cloud9/bashrc.default /home/$USER/.bashrc

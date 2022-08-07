@@ -136,9 +136,19 @@ until [[ $SUCCESS == "TRUE" ]]; do
             su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/button-icon -t string -s '$MENU_ICON'"
         fi
         
-        # Hide menu icons
+        # Set menu icons
         if [ -n "$SHOW_MENU_ICONS" ]; then
             su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-menu-icons -t bool -s '$SHOW_MENU_ICONS'"
+        fi
+
+        # Set tooltips
+        if [ -n "$SHOW_TOOLTIPS" ]; then
+            su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-tooltips -t bool -s '$SHOW_TOOLTIPS'"
+        fi
+
+        # Set menu icons
+        if [ -n "$SHOW_GENERIC_NAMES" ]; then
+            su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-generic-names -t bool -s '$SHOW_GENERIC_NAMES'"
         fi
 
         # Remove plugins

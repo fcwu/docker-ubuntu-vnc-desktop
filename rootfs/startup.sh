@@ -77,6 +77,10 @@ fi
 PASSWORD=
 HTTP_PASSWORD=
 
+# BashRC
+cp /cloud9/bashrc.default /home/$USER/.bashrc
+chown -R $USER:$USER /home/$USER/.bashrc
+
 
 # cloud9
 cp /cloud9/bashrc.default /home/$USER/.bashrc
@@ -177,6 +181,10 @@ until [[ $SUCCESS == "TRUE" ]]; do
     sleep 1
 done &
 
+DOCKER_CREDS=/workspace/.ubuntu/docker_creds
+if test -f "$DOCKER_CREDS"; then
+    echo "DOCKER_CREDS exists."
+    su $USER -c "DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo \$DOCKER_PASS | docker login --username \$DOCKER_USER --password-stdin)"
+fi
+
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf
-
-

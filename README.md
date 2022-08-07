@@ -162,3 +162,27 @@ Dockerfile and configuration are re-generate if they do not exist. Or you may fo
 ## License
 
 See the LICENSE file for details.
+
+
+## New
+Failing to generate a key using the below path will cause the key to delete after a routine update to the cluster. After the upgrade, use the command above to generate a new key for it to be persistent
+
+Generate percistent SSH key using otherwise it will delete on upgrade:
+#ssh-keygen -t ed25519 -f /workspace/.$USER/.ssh/id_ed25519 -C "user@cloud9"
+
+ENV Vars
+USER
+PASSWORD
+RESOLUTION
+TZ
+DOMAIN?
+MENU_NAME
+MENU_ICON
+SHOW_MENU_ICONS
+SHOW_TOOLTIPS
+SHOW_GENERIC_NAMES
+
+/workspace/.ubuntu/docker_creds
+user
+pass
+

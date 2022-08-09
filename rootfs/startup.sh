@@ -1,5 +1,4 @@
 #!/bin/bash
-
 if [ -n "$VNC_PASSWORD" ]; then
     echo -n "$VNC_PASSWORD" > /.password1
     x11vnc -storepasswd $(cat /.password1) /.password2
@@ -32,7 +31,8 @@ USER=${USER:-root}
 HOME=/root
 if [ "$USER" != "root" ]; then
     echo "* enable custom user: $USER"
-    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo $USER
+    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
+
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""
         PASSWORD=ubuntu
@@ -41,7 +41,7 @@ if [ "$USER" != "root" ]; then
         
         PASSWORD=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
     fi
-    HOME=/home/$USER
+    HOME=/workspace/.home/$USER
     echo "$USER:$PASSWORD" | chpasswd
     cp -r /root/{.config,.gtkrc-2.0,.asoundrc} ${HOME}
     chown -R $USER:$USER ${HOME}
@@ -78,33 +78,33 @@ PASSWORD=
 HTTP_PASSWORD=
 
 # BashRC
-cp /cloud9/bashrc.default /home/$USER/.bashrc
-chown -R $USER:$USER /home/$USER/.bashrc
+cp /cloud9/bashrc.default $HOME/.bashrc
+chown -R $USER:$USER $HOME/.bashrc
 
 # Gitconfig
-touch /workspace/.ubuntu/gitconfig
-ln -sf /workspace/.ubuntu/gitconfig /home/$USER/.gitconfig
+#touch /workspace/.ubuntu/gitconfig
+#ln -sf /workspace/.ubuntu/gitconfig /home/$USER/.gitconfig
 
 # cloud9
-cp /cloud9/bashrc.default /home/$USER/.bashrc
-mkdir -p /workspace/.$USER/.standalone
-mkdir -p /workspace/.$USER/.c9
-USER_SETTINGS="/workspace/.$USER/user.settings"
-if [ ! -f $USER_SETTINGS ]; then touch $USER_SETTINGS; fi
-ln -sf $USER_SETTINGS /home/$USER/.c9/user.settings
+#mkdir -p /workspace/.$USER/.standalone
+#mkdir -p /workspace/.$USER/.c9
+#USER_SETTINGS="/workspace/.$USER/user.settings"
+#if [ ! -f $USER_SETTINGS ]; then touch $USER_SETTINGS; fi
+#ln -sf $USER_SETTINGS /home/$USER/.c9/user.settings
 
 # Symlink SSH keys
-mkdir -p /workspace/.$USER/.ssh 
-chmod 700 /workspace/.$USER/.ssh
-ln -sf /workspace/.$USER/.ssh /home/$USER/.ssh
+#mkdir -p /workspace/.$USER/.ssh 
+#chmod 700 /workspace/.$USER/.ssh
+#ln -sf /workspace/.$USER/.ssh /home/$USER/.ssh
 
 if [ -n "$DOMAIN" ]; then
     DOMAIN="cloud9.example.com"
 fi
-chown -R $USER:$USER /home/$USER /cloud9 /workspace
+chown -R $USER:$USER $HOME /cloud9 /workspace
 
 # Add required packages for ubuntu user (Run as user)
 
+rm -rf $HOME/.c9
 mkdir -p /workspace/.c9
 chown $USER:$USER /workspace/.c9 
 sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /workspace/.c9/install.log &
@@ -184,11 +184,13 @@ until [[ $SUCCESS == "TRUE" ]]; do
     sleep 1
 done &
 
-DOCKER_CREDS=/workspace/.ubuntu/docker_creds
-if test -f "$DOCKER_CREDS"; then
-    echo "DOCKER_CREDS exists."
-    #su $USER -c "DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo \$DOCKER_PASS | docker login --username \$DOCKER_USER --password-stdin)"
-    DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
-fi
+#DOCKER_CREDS=/workspace/.ubuntu/docker_creds
+#if test -f "$DOCKER_CREDS"; then
+#    echo "DOCKER_CREDS exists."
+#    #su $USER -c "DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo \$DOCKER_PASS | docker login --username \$DOCKER_USER --password-stdin)"
+#    DOCKER_USER=$(cat $DOCKER_CREDS | head -n1); DOCKER_PASS=$(cat $DOCKER_CREDS | tail -n1); echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin
+#fi
+
+chown root:root /home
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

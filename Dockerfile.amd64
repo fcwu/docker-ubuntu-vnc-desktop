@@ -154,6 +154,7 @@ HEALTHCHECK --interval=30s --timeout=5s CMD curl --fail http://127.0.0.1:6079/ap
 ENTRYPOINT ["/startup.sh"]
 
 # Install Docker
+RUN groupadd -g 281 docker
 RUN mkdir -p /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 RUN echo \

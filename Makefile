@@ -4,7 +4,7 @@
 REPO  ?= dorowu/ubuntu-desktop-lxde-vnc
 TAG   ?= latest
 # you can choose other base image versions
-IMAGE ?= ubuntu:18.04
+IMAGE ?= ubuntu:latest
 # choose from supported flavors (see available ones in ./flavors/*.yml)
 FLAVOR ?= lxde
 # armhf or amd64

@@ -163,6 +163,9 @@ RUN echo \
 RUN apt-get update
 RUN apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin    menulibre python3-pip keychain python3.8-venv strace
 
+RUN wget -O beyond_compare.deb https://www.scootersoftware.com/$(curl -sd "platform=linux" https://www.scootersoftware.com/download.php | grep amd64.deb | awk -F\" '{print $2}' | sed 's/\///g')
+RUN apt install -y ./beyond_compare.deb
+
 RUN npm -g install sass yuglify
 
 # Copy files

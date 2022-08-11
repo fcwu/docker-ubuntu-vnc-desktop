@@ -107,6 +107,6 @@ if [ ! "$(ls -A /workspace/.ubuntu/dynamic-background/active/ )" ]; then
     cp -r /usr/share/backgrounds/dynamic-background/default/* /workspace/.ubuntu/dynamic-background/active
 fi
 
-bash /cloud9/configure_desktop.sh
+bash /cloud9/configure_desktop.sh &
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

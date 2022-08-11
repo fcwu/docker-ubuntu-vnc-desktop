@@ -22,6 +22,7 @@ su $USER -c "xfconf-query -c xfce4-panel -p /panels -t int -s 1 -a"
 if [ -n "$MENU_NAME" ]; then
     su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/button-title -t string -s '$MENU_NAME'"
 fi
+
 if [ -n "$MENU_ICON" ]; then
     su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/button-icon -t string -s '$MENU_ICON'"
 fi
@@ -29,16 +30,29 @@ fi
 # Set menu icons
 if [ -n "$SHOW_MENU_ICONS" ]; then
     su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-menu-icons -t bool -s '$SHOW_MENU_ICONS'"
+else
+    su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-menu-icons -t bool -s 'false'"
 fi
 
 # Set tooltips
 if [ -n "$SHOW_TOOLTIPS" ]; then
     su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-tooltips -t bool -s '$SHOW_TOOLTIPS'"
+else
+    su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-tooltips -t bool -s 'false'"
 fi
 
-# Set menu icons
+# Set menu names
 if [ -n "$SHOW_GENERIC_NAMES" ]; then
     su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-generic-names -t bool -s '$SHOW_GENERIC_NAMES'"
+else
+    su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-generic-names -t bool -s 'true'"
+fi
+
+# Set desktop right click menu
+if [ -n "$RIGHT_CLICK_APP_MENU" ]; then
+    su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-menu/show -t bool -s '$RIGHT_CLICK_APP_MENU'"
+else
+    su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-menu/show -t bool -s 'false'"
 fi
 
 # Remove plugins

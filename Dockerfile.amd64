@@ -166,7 +166,7 @@ RUN apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plug
 RUN wget -O beyond-compare.deb https://www.scootersoftware.com/$(curl -sd "platform=linux" https://www.scootersoftware.com/download.php | grep amd64.deb | awk -F\" '{print $2}' | sed 's/\///g')
 RUN wget -O sublime-text.deb $(curl -s https://www.sublimetext.com/download_thanks?target=x64-deb#direct-downloads | grep amd64.deb | grep url | awk -F'"' '{print $2}')
 RUN wget -O sublime-merge.deb $(curl -s https://www.sublimemerge.com/download_thanks?target=x64-deb#direct-downloads | grep amd64.deb | grep url | awk -F'"' '{print $2}')
-RUN wget -O chrome.deb wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN wget -O chrome.deb wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb || true
 RUN apt install -y ./beyond-compare.deb ./sublime-text.deb ./sublime-merge.deb ./chrome.deb
 
 RUN npm -g install sass yuglify

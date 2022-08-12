@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=X11VNC Server
+Comment=Share this desktop by VNC
+Exec=x11vnc -gui tray=setpass -rfbport PROMPT -bg -o %%HOME/.x11vnc.log.%%VNCDISPLAY
+Icon=computer
+Terminal=false
+Type=Application
+StartupNotify=false
+#StartupWMClass=x11vnc_port_prompt
+Categories=Network;RemoteAccess;
+Keywords=VNC;Server;Screencast
+NoDisplay=true

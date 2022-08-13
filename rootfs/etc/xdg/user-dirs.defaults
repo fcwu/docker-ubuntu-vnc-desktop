@@ -4,12 +4,12 @@
 # will be translated on a per-path-element basis into the users locale
 DESKTOP=Desktop
 DOWNLOAD=Downloads
-#TEMPLATES=Templates
-PUBLICSHARE=/workspace/fileshare
-DOCUMENTS=/workspace
-#MUSIC=Music
-#PICTURES=Pictures
-#VIDEOS=Videos
+TEMPLATES=Workspace
+PUBLICSHARE=Workspace/Company Files
+DOCUMENTS=Documents
+#MUSIC="$HOME"
+#PICTURES="$HOME"
+#VIDEOS="$HOME"
 # Another alternative is:
 #MUSIC=Documents/Music
 #PICTURES=Documents/Pictures

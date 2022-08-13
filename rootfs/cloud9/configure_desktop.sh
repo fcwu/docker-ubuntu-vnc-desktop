@@ -55,6 +55,12 @@ else
     su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-menu/show -t bool -s 'false'"
 fi
 
+# Remove desktop icons
+su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-icons/file-icons/show-removable -t bool -s 'false'"
+su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-icons/file-icons/show-home -t bool -s 'true'"
+su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-icons/file-icons/show-filesystem -t bool -s 'false'"
+su $USER -c "xfconf-query -c xfce4-desktop -np /desktop-icons/file-icons/show-trash -t bool -s 'true'"
+
 # Remove plugins
 su $USER -c "
     # Copy Existing Array

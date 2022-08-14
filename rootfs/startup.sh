@@ -31,7 +31,8 @@ USER=${USER:-root}
 HOME=/root
 if [ "$USER" != "root" ]; then
     echo "* enable custom user: $USER"
-    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
+    #useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
+    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $USER
 
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""
@@ -41,7 +42,8 @@ if [ "$USER" != "root" ]; then
 
         PASSWORD=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
     fi
-    HOME=/workspace/.home/$USER
+    #HOME=/workspace/.home/$USER
+    HOME=/home/$USER
     echo "$USER:$PASSWORD" | chpasswd
     cp -r /root/{.config,.gtkrc-2.0,.asoundrc} ${HOME}
     chown -R $USER:$USER ${HOME}
@@ -86,27 +88,39 @@ if [ -n "$DOMAIN" ]; then
 fi
 
 # Reduce this so its not everything
-chown -R $USER:$USER $HOME /cloud9 /workspace/.c9 /workspace/.$USER
+#chown -R $USER:$USER $HOME /cloud9 /workspace
 
 # Add required packages for ubuntu user (Run as user)
 
-rm -rf $HOME/.c9
-mkdir -p /workspace/.c9
-chown $USER:$USER /workspace/.c9
-sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /workspace/.c9/install.log &
+#rm -rf $HOME/.c9
+#mkdir -p /workspace/.c9
+#chown $USER:$USER /workspace/.c9
+sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /home/$USER/.cloud9-install.log &
 
 # Only for testing while editing the menu
-chown $USER /usr/share/applications/
+#chown $USER /usr/share/applications/
 
 # Setup Backgrounds
-mkdir -p /workspace/.ubuntu/dynamic-background/active/
+mkdir -p /home/$USER/.dynamic-background/active/
 for BACKGROUND in $(ls -1 /usr/share/backgrounds/dynamic-background/ | grep -v -e "active" -e "default" ); do
-    cp -r /usr/share/backgrounds/dynamic-background/$BACKGROUND /workspace/.ubuntu/dynamic-background/
+    cp -r /usr/share/backgrounds/dynamic-background/$BACKGROUND /home/$USER/.dynamic-background/active/
 done
-if [ ! "$(ls -A /workspace/.ubuntu/dynamic-background/active/ )" ]; then
-    cp -r /usr/share/backgrounds/dynamic-background/default/* /workspace/.ubuntu/dynamic-background/active
+if [ ! "$(ls -A /home/$USER/.dynamic-background/active/ )" ]; then
+    cp -r /usr/share/backgrounds/dynamic-background/default/* /home/$USER/.dynamic-background/active/
 fi
 
 bash /cloud9/configure_desktop.sh &
+
+mkdir /home/$USER/Workspace
+chown $USER:$USER /home/$USER/Workspace
+echo "/home/$USER/Workspace /workspace none defaults,bind 0 0" >> /etc/fstab
+mount -a
+
+mkdir /home/$USER/.config/gtk-3.0
+chown $USER:$USER /home/$USER/.config/gtk-3.0
+echo "file:///home/$USER/Documents" > /home/$USER/.config/gtk-3.0/bookmarks
+echo "file:///home/$USER/Workspace" >> /home/$USER/.config/gtk-3.0/bookmarks
+echo "file:///home/$USER/Workspace/Company%20Files" >> /home/$USER/.config/gtk-3.0/bookmarks
+echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

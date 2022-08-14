@@ -11,7 +11,6 @@ sleep 5
 
 DBUS_ADDRESS=$(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$PID/environ|cut -d= -f2-)
 echo "DBUS Session Address: $DBUS_ADDRESS"
-echo "$DBUS_ADDRESS" > /var/log/dbus.txt
 export DBUS_SESSION_BUS_ADDRESS
 export DISPLAY=:1.0
 

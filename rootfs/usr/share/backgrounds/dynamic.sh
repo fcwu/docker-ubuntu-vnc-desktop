@@ -1,5 +1,4 @@
 OLD_FILE=""
-DBUS_FILE="/var/log/dbus.txt"
 DIR=$(pwd)
 
 export DISPLAY=:1.0

@@ -11,6 +11,7 @@ blocks:
         - name: docker build
           commands:
             - checkout
+            - git submodule update --init --recursive
             - docker build -t cloud9-ide-vdi .
             - '# Define Version Numbers'
             - DATE=$(date +%y%U)
@@ -25,11 +26,3 @@ blocks:
             - 'docker push $DOCKER_USERNAME/docker-cloud9:latest'
       secrets:
         - name: Dockerhub
-      prologue:
-        commands:
-          - git submodule init
-          - git submodule update
-      epilogue:
-        always:
-          commands:
-            - git submodule deinit --force .

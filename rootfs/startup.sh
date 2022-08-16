@@ -118,9 +118,7 @@ fi
 
 bash /cloud9/configure_desktop.sh &
 
-mkdir -p "/home/$USER/Workspace/-Shared Files-"
 grep -qxF "/home/$USER/Workspace /workspace none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace /workspace none defaults,bind 0 0" >> /etc/fstab
-grep -qxF "/home/$USER/Shared\ Files /workspace/-Shared\ Files- none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Shared\ Files /workspace/-Shared\ Files- none defaults,bind 0 0" >> /etc/fstab
 mount -a
 
 # Make directory for bookmarks

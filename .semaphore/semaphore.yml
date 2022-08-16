@@ -1,0 +1,27 @@
+version: v1.0
+name: Initial Pipeline
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: Build
+    task:
+      jobs:
+        - name: docker build
+          commands:
+            - checkout
+            - docker build -t cloud9-ide-vdi .
+            - '# Define Version Numbers'
+            - DATE=$(date +%y%U)
+            - 'VERSION="${DATE}"'
+            - '# Login to Dockerhub'
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+            - '# Create a version'
+            - 'docker pull $DOCKER_USERNAME/docker-cloud9:$VERSION || true'
+            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:$VERSION -t $DOCKER_USERNAME/cloud9-ide-vdi:$VERSION .'
+            - 'docker image tag devindice/cloud9-ide-vdi:$VERSION devindice/cloud9-ide-vdi:latest'
+            - 'docker push $DOCKER_USERNAME/docker-cloud9:$VERSION'
+            - 'docker push $DOCKER_USERNAME/docker-cloud9:latest'
+      secrets:
+        - name: Dockerhub

@@ -5,7 +5,7 @@
 DESKTOP=Desktop
 DOWNLOAD=Downloads
 #TEMPLATES=Workspace
-PUBLICSHARE=Shared Files
+PUBLICSHARE=Workspace/-Shared Files-
 DOCUMENTS=Workspace
 #MUSIC="$HOME"
 #PICTURES="$HOME"

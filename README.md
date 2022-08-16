@@ -1,4 +1,4 @@
-# docker-ubuntu-vnc-desktop
+# cloud9-ide-vdi
 
 [![Build Status](https://devindice.semaphoreci.com/badges/cloud9-ide-vdi/branches/master.svg?style=shields&key=f3753e35-8f57-43d9-9b4f-03d4d6bf56e1)](https://devindice.semaphoreci.com/projects/cloud9-ide-vdi)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dorowu/ubuntu-desktop-lxde-vnc.svg)](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/)

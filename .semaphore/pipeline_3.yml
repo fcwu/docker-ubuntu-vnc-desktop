@@ -1,0 +1,16 @@
+version: v1.0
+name: Pipeline 3
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: Tagging
+    task:
+      jobs:
+        - name: Tag build with version
+          commands:
+            - '# Login to Dockerhub'
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+            - '# Create a version'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:testing'

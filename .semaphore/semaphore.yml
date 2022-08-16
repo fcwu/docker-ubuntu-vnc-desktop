@@ -11,6 +11,7 @@ blocks:
         - name: docker build
           commands:
             - checkout
+            - 'git clone --recursive https://github.com/fcwu/docker-ubuntu-vnc-desktop'
             - docker build -t cloud9-ide-vdi .
             - '# Define Version Numbers'
             - DATE=$(date +%y%U)

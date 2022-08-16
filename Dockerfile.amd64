@@ -161,7 +161,7 @@ RUN echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 RUN apt-get update
-RUN apt-get -y install menulibre python3-pip keychain python3.8-venv strace gedit gvfs-backends
+RUN apt-get -y install nautilus menulibre python3-pip keychain python3.8-venv strace gedit gvfs-backends
 RUN apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 RUN wget -O beyond-compare.deb https://www.scootersoftware.com/$(curl -sd "platform=linux" https://www.scootersoftware.com/download.php | grep amd64.deb | awk -F\" '{print $2}' | sed 's/\///g')
@@ -171,6 +171,8 @@ RUN wget -O chrome.deb wget https://dl.google.com/linux/direct/google-chrome-sta
 RUN apt install -y ./beyond-compare.deb ./sublime-text.deb ./sublime-merge.deb ./chrome.deb
 
 RUN npm -g install sass yuglify
+
+RUN apt -y remove thunar
 
 # Copy files
 COPY rootfs /

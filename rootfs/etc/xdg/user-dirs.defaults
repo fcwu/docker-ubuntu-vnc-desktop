@@ -4,9 +4,9 @@
 # will be translated on a per-path-element basis into the users locale
 DESKTOP=Desktop
 DOWNLOAD=Downloads
-TEMPLATES=Workspace
-PUBLICSHARE=Workspace/Company Files
-DOCUMENTS=Documents
+#TEMPLATES=Workspace
+PUBLICSHARE=Shared Files
+DOCUMENTS=Workspace
 #MUSIC="$HOME"
 #PICTURES="$HOME"
 #VIDEOS="$HOME"

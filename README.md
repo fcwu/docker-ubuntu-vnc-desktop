@@ -29,36 +29,25 @@ docker-ubuntu-vnc-desktop is a Docker image to provide web VNC interface to acce
 Run the docker container and access with port `6080`
 
 ```shell
-docker run -p 6080:80 -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 Browse http://127.0.0.1:6080/
 
 <img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png?v1" width=700/>
 
-### Ubuntu Flavors
-
-Choose your favorite Ubuntu version with [tags](https://hub.docker.com/r/dorowu/ubuntu-desktop-lxde-vnc/tags/)
-
-- focal: Ubuntu 20.04 (latest)
-- focal-lxqt: Ubuntu 20.04 LXQt
-- bionic: Ubuntu 18.04
-- bionic-lxqt: Ubuntu 18.04 LXQt
-- xenial: Ubuntu 16.04 (deprecated)
-- trusty: Ubuntu 14.04 (deprecated)
-
 ## VNC Viewer
 
 Forward VNC service port 5900 to host by
 
 ```shell
-docker run -p 6080:80 -p 5900:5900 -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -p 5900:5900 -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 Now, open the vnc viewer and connect to port 5900. If you would like to protect vnc service by password, set environment variable `VNC_PASSWORD`, for example
 
 ```shell
-docker run -p 6080:80 -p 5900:5900 -e VNC_PASSWORD=mypassword -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -p 5900:5900 -e VNC_PASSWORD=mypassword -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 A prompt will ask password either in the browser or vnc viewer.
@@ -68,7 +57,7 @@ A prompt will ask password either in the browser or vnc viewer.
 This image provides base access authentication of HTTP via `HTTP_PASSWORD`
 
 ```shell
-docker run -p 6080:80 -e HTTP_PASSWORD=mypassword -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e HTTP_PASSWORD=mypassword -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 ## SSL
@@ -83,7 +72,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/nginx.key -out s
 Specify SSL port by `SSL_PORT`, certificate path to `/etc/nginx/ssl`, and forward it to 6081
 
 ```shell
-docker run -p 6081:443 -e SSL_PORT=443 -v ${PWD}/ssl:/etc/nginx/ssl -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6081:443 -e SSL_PORT=443 -v ${PWD}/ssl:/etc/nginx/ssl -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 ## Screen Resolution
@@ -91,7 +80,7 @@ docker run -p 6081:443 -e SSL_PORT=443 -v ${PWD}/ssl:/etc/nginx/ssl -v /dev/shm:
 The Resolution of virtual desktop adapts browser window size when first connecting the server. You may choose a fixed resolution by passing `RESOLUTION` environment variable, for example
 
 ```shell
-docker run -p 6080:80 -e RESOLUTION=1920x1080 -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e RESOLUTION=1920x1080 -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 ## Default Desktop User
@@ -99,7 +88,7 @@ docker run -p 6080:80 -e RESOLUTION=1920x1080 -v /dev/shm:/dev/shm dorowu/ubuntu
 The default user is `root`. You may change the user and password respectively by `USER` and `PASSWORD` environment variable, for example,
 
 ```shell
-docker run -p 6080:80 -e USER=doro -e PASSWORD=password -v /dev/shm:/dev/shm dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e USER=doro -e PASSWORD=password -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 ```
 
 ## Deploy to a subdirectory (relative url root)
@@ -107,7 +96,7 @@ docker run -p 6080:80 -e USER=doro -e PASSWORD=password -v /dev/shm:/dev/shm dor
 You may deploy this application to a subdirectory, for example `/some-prefix/`. You then can access application by `http://127.0.0.1:6080/some-prefix/`. This can be specified using the `RELATIVE_URL_ROOT` configuration option like this
 
 ```shell
-docker run -p 6080:80 -e RELATIVE_URL_ROOT=some-prefix dorowu/ubuntu-desktop-lxde-vnc
+docker run -p 6080:80 -e RELATIVE_URL_ROOT=some-prefix devindice/cloud9-ide-vdi
 ```
 
 NOTE: this variable should not have any leading and trailing splash (/)
@@ -125,7 +114,7 @@ sudo modprobe snd-aloop index=2
 Start the container
 
 ```shell
-docker run -it --rm -p 6080:80 --device /dev/snd -e ALSADEV=hw:2,0 dorowu/ubuntu-desktop-lxde-vnc
+docker run -it --rm -p 6080:80 --device /dev/snd -e ALSADEV=hw:2,0 devindice/cloud9-ide-vdi
 ```
 
 where `--device /dev/snd -e ALSADEV=hw:2,0` means to grant sound device to container and set basic ASLA config to use card 2.

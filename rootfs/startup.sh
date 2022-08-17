@@ -119,6 +119,7 @@ fi
 
 bash /cloud9/configure_desktop.sh &
 
+mkdir -p /home/$USER/Workspace/-Shared\ Files-
 grep -qxF "/home/$USER/Workspace /workspace none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace /workspace none defaults,bind 0 0" >> /etc/fstab
 mount -a
 
@@ -128,13 +129,11 @@ mkdir -p /home/$USER/.config/gtk-3.0
 # Keep these bookmarks
 grep "file:///home/$USER/Documents" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Documents" >> /home/$USER/.config/gtk-3.0/bookmarks
 grep "file:///home/$USER/Workspace" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace" >> /home/$USER/.config/gtk-3.0/bookmarks
-grep "file:///home/$USER/Workspace/Shared%20Files" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/Shared%20Files" >> /home/$USER/.config/gtk-3.0/bookmarks
+grep "file:///home/$USER/Workspace/Shared%20Files" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/-Shared%20Files-" >> /home/$USER/.config/gtk-3.0/bookmarks
 grep "file:///home/$USER/Downloads" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
 
 grep "127.0.0.1 archive.linux.duke.edu" /etc/hosts || echo "127.0.0.1 archive.linux.duke.edu" >> /etc/hosts
 
 chown -R $USER:$USER /home/$USER/
-
-sleep 6000
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

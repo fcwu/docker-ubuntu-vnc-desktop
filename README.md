@@ -34,7 +34,8 @@ docker run -p 6080:80 -v /dev/shm:/dev/shm devindice/cloud9-ide-vdi
 
 Browse http://127.0.0.1:6080/
 
-<img src="https://raw.github.com/fcwu/docker-ubuntu-vnc-desktop/master/screenshots/lxde.png?v1" width=700/>
+<img src="https://raw.github.com/devindice/cloud9-ide-vdi/master/screenshots/IDE.png?v1" width=700/>
+<img src="https://raw.github.com/devindice/cloud9-ide-vdi/master/screenshots/VDI.png?v1" width=700/>
 
 ## VNC Viewer
 

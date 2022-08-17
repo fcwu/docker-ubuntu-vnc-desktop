@@ -10,6 +10,8 @@ blocks:
       jobs:
         - name: Tag and Push
           commands:
+            - checkout
+            - git submodule update --init --recursive
             - DATE=$(date +%y%U%u)
             - 'VERSION="${DATE}"'
             - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:latest || true'

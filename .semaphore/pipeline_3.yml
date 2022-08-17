@@ -1,0 +1,26 @@
+version: v1.0
+name: Deploy Production
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: Production Build
+    task:
+      jobs:
+        - name: Tag and Push
+          commands:
+            - checkout
+            - git submodule update --init --recursive
+            - DATE=$(date +%y%U%u)
+            - 'VERSION="${DATE}"'
+            - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:latest || true'
+            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
+            - '# Login to Dockerhub'
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+            - '# Create a version'
+            - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:$VERSION'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:$VERSION'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:latest'
+      secrets:
+        - name: Dockerhub

@@ -1,0 +1,24 @@
+version: v1.0
+name: Initial Pipeline
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: Setup
+    task:
+      jobs:
+        - name: Checkout
+          commands:
+            - checkout
+      secrets:
+        - name: Dockerhub
+promotions:
+  - name: Deploy Release Candidate
+    pipeline_file: pipeline_2.yml
+    auto_promote:
+      when: branch = 'release' AND result = 'passed'
+  - name: Deploy Production
+    pipeline_file: pipeline_3.yml
+    auto_promote:
+      when: branch = 'master' AND result = 'passed'

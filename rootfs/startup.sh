@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sleep 6000
-
 if [ -n "$VNC_PASSWORD" ]; then
     echo -n "$VNC_PASSWORD" > /.password1
     x11vnc -storepasswd $(cat /.password1) /.password2
@@ -136,5 +134,7 @@ grep "file:///home/$USER/Downloads" /home/$USER/.config/gtk-3.0/bookmarks || ech
 grep "127.0.0.1 archive.linux.duke.edu" /etc/hosts || echo "127.0.0.1 archive.linux.duke.edu" >> /etc/hosts
 
 chown -R $USER:$USER /home/$USER/
+
+sleep 6000
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

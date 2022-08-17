@@ -1,18 +1,18 @@
 version: v1.0
-name: Pipeline 2
+name: Deploy Release Candidate
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu2004
 blocks:
-  - name: Tag
+  - name: RC Build
     task:
       jobs:
-        - name: Tag build as testing
+        - name: Tag and Push
           commands:
             - '# Login to Dockerhub'
             - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
             - '# Create a version'
-            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:latest'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:testing'
       secrets:
         - name: Dockerhub

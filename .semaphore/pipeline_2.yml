@@ -8,8 +8,10 @@ blocks:
   - name: RC Build
     task:
       jobs:
-        - name: Tag and Push
+        - name: Build and Push
           commands:
+            - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:latest || true'
+            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
             - '# Login to Dockerhub'
             - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
             - '# Create a version'

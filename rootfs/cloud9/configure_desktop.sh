@@ -44,7 +44,7 @@ fi
 if [ -n "$SHOW_GENERIC_NAMES" ]; then
     su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-generic-names -t bool -s '$SHOW_GENERIC_NAMES'"
 else
-    su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-generic-names -t bool -s 'true'"
+    su $USER -c "xfconf-query -c xfce4-panel -np /plugins/plugin-1/show-generic-names -t bool -s 'false'"
 fi
 
 # Set desktop right click menu

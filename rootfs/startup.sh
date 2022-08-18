@@ -33,7 +33,7 @@ HOME=/root
 if [ "$USER" != "root" ]; then
     echo "* enable custom user: $USER"
     #useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
-    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $USER
+    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $(if [ ! $PUID == "" ]; then echo "--uid $PUID"; fi) $(if [ ! $PGID == "" ]; then echo "--gid $PGID"; fi) $USER
 
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""
@@ -43,11 +43,11 @@ if [ "$USER" != "root" ]; then
 
         PASSWORD=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
     fi
+    
     #HOME=/workspace/.home/$USER
     HOME=/home/$USER
     echo "$USER:$PASSWORD" | chpasswd
     cp -r /root/{.config,.gtkrc-2.0,.asoundrc} ${HOME}
-    chown -R $USER:$USER ${HOME}
     [ -d "/dev/snd" ] && chgrp -R adm /dev/snd
 fi
 sed -i -e "s|%USER%|$USER|" -e "s|%HOME%|$HOME|" /etc/supervisor/conf.d/supervisord.conf
@@ -133,7 +133,5 @@ grep "file:///home/$USER/Workspace/Shared%20Files" /home/$USER/.config/gtk-3.0/b
 grep "file:///home/$USER/Downloads" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
 
 grep "127.0.0.1 archive.linux.duke.edu" /etc/hosts || echo "127.0.0.1 archive.linux.duke.edu" >> /etc/hosts
-
-chown -R $USER:$USER /home/$USER/
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

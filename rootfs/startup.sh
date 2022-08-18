@@ -33,7 +33,7 @@ HOME=/root
 if [ "$USER" != "root" ]; then
     echo "* enable custom user: $USER"
     #useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
-    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $(if [ -z $PUID ]; then echo "--uid $PUID"; fi) $(if [ -z $PGID ]; then echo "--gid $PGID"; fi) $USER
+    useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $(if [ ! $PUID == "" ]; then echo "--uid $PUID"; fi) $(if [ ! $PGID == "" ]; then echo "--gid $PGID"; fi) $USER
 
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""

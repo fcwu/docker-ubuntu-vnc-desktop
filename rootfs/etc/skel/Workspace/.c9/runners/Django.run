@@ -1,0 +1,10 @@
+// Create a custom Cloud9 runner - similar to the Sublime build system
+// For more information see https://docs.c9.io/custom_runners.html
+{
+    "cmd" : [
+        "$(pwd)/app/virtualEnv/bin/python3",
+        "$(pwd)/app/manage.py",
+        "runserver",
+        "$(if [ '$IP' == '' ]; then echo 0.0.0.0; else echo $IP; fi):$(if [ '$PORT' == '' ]; then echo 8080; else echo $PORT; fi)"
+        ]
+}

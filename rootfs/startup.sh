@@ -132,6 +132,23 @@ grep "Workspace" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$US
 grep "Shared%20Files" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/-Shared%20Files-" >> /home/$USER/.config/gtk-3.0/bookmarks
 grep "Downloads" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
 
+# Duke.edu repo is down 8/18/2020
 grep "127.0.0.1 archive.linux.duke.edu" /etc/hosts || echo "127.0.0.1 archive.linux.duke.edu" >> /etc/hosts
+
+if [ -n "$HOSTNAME" ]; then
+    echo "$HOSTNAME" >> /etc/hosts
+fi
+
+if [ -n "$NAMESERVER" ]; then
+    sed -i "s/%nameserver%/$NAMESERVER/" /etc/resolv.conf
+else
+    sed -i "s/%nameserver%/nameserver 127.0.0.11/" /etc/resolv.conf
+fi
+
+if [ -n "$SEARCHDOMAIN" ]; then
+    sed -i "s/%searchdomain%/$SEARCHDOMAIN/" /etc/resolv.conf
+else
+    sed -i "s/%searchdomain%/" /etc/resolv.conf
+fi
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

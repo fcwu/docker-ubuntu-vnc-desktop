@@ -127,10 +127,10 @@ mount -a
 mkdir -p /home/$USER/.config/gtk-3.0
 
 # Keep these bookmarks
-grep "file:///home/$USER/Documents" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Documents" >> /home/$USER/.config/gtk-3.0/bookmarks
-grep "file:///home/$USER/Workspace" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace" >> /home/$USER/.config/gtk-3.0/bookmarks
-grep "file:///home/$USER/Workspace/Shared%20Files" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/-Shared%20Files-" >> /home/$USER/.config/gtk-3.0/bookmarks
-grep "file:///home/$USER/Downloads" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
+#grep "Documents" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Documents" >> /home/$USER/.config/gtk-3.0/bookmarks
+grep "Workspace" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace" >> /home/$USER/.config/gtk-3.0/bookmarks
+grep "Shared%20Files" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/-Shared%20Files-" >> /home/$USER/.config/gtk-3.0/bookmarks
+grep "Downloads" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
 
 grep "127.0.0.1 archive.linux.duke.edu" /etc/hosts || echo "127.0.0.1 archive.linux.duke.edu" >> /etc/hosts
 

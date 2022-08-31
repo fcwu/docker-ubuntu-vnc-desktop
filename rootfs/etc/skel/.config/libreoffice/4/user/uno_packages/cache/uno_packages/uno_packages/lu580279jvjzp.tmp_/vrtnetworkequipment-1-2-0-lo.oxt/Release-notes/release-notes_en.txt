@@ -1,0 +1,13 @@
+﻿Extension : VRT Gallery of network equipment shapes
+
+Release notes:
+V1.2.0(2014-07-31):    Reorganised theme folders, lots of new shapes (now 210+) - logical networking, visualisation/display systems.
+V1.1.1(2014-07-15):    Added templates with isometric guidelines to assist with drawing layout (A4P, A3L).
+V1.1.0(2014-07-12):    Lots of new shapes, dark variants, logical networking. Complete reorganisation.
+V1.0.6(2014-07-06):    Added USB Key shapes in various orientations.
+V1.0.5(2014-06-21):    Minor consistency improvements, new equipment (dish, WiFi router), OpenOffice support.
+V1.0.4(2013-10-17):    Added multi-circuit power monitor.
+V1.0.3(2013-08-30):    Added laser scanners.
+V1.0.2(2012-07-30):    Added A-B PLC equipment.
+V1.0.1(2012-06-29):    Added new equipment, cleaned up some existing equipment.
+V1.0.0(2012-06-10):    First release.

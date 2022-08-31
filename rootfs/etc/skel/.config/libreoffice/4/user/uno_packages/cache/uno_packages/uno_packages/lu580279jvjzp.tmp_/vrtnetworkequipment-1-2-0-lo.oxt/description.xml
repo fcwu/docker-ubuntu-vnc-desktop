@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<description 
+    xmlns="http://openoffice.org/extensions/description/2006"
+    xmlns:d="http://openoffice.org/extensions/description/2006"
+    xmlns:l="http://libreoffice.org/extensions/description/2011"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <identifier value="au.com.vrt.libreoffice.gallery.network" />
+    <version value="1.2.0" />
+    <publisher>
+        <name xlink:href="http://www.vrt.com.au/downloads/vrt-network-equipment" lang="en">VRT Systems</name>
+    </publisher>
+    <dependencies>
+        <l:LibreOffice-minimal-version value="3.3" d:name="LibreOffice 3.3" />
+    </dependencies>
+    <release-notes>
+        <src xlink:href="release-notes/release-notes_en.txt" lang="en" />
+    </release-notes>
+    <display-name>
+       <name lang="en">Gallery of network equipment shapes</name>
+       <name lang="de">Galerie von Netzwerk-Equipment Formen</name>
+       <name lang="es">Galería de formas de equipos de red</name>
+       <name lang="fr">Galerie de formes d'équipement de réseau</name>
+       <name lang="nl">Galerij van netwerkapparatuur vormen</name>
+       <name lang="pt">Galeria de formas de equipamento de rede</name>
+    </display-name>
+    <platform value="all" />
+    <icon>
+        <default xlink:href="vrt-network-equipment.png" />
+    </icon>
+</description>
+
+

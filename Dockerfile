@@ -179,8 +179,8 @@ COPY rootfs /
 RUN rm -rf /workspace/*
 
 
-RUN useradd -u 99 -ms /bin/bash ubuntu
-RUN adduser ubuntu sudo
+RUN useradd -u 99 -aG sudo -ms /bin/bash ubuntu
+#RUN adduser ubuntu sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Install from user (not doing)

@@ -177,3 +177,16 @@ RUN apt -y remove thunar
 # Copy files
 COPY rootfs /
 RUN rm -rf /workspace/*
+
+
+RUN useradd -u 99 -ms /bin/bash ubuntu
+RUN adduser ubuntu sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Install from user (not doing)
+USER ubuntu
+CMD /bin/bash
+
+run bash /cloud9/user-install.sh
+
+user root 

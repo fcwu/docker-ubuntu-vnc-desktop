@@ -103,7 +103,12 @@ fi
 #rm -rf $HOME/.c9
 #mkdir -p /workspace/.c9
 #chown $USER:$USER /workspace/.c9
-sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /home/$USER/.cloud9-install.log &
+
+ 
+
+
+
+#sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /home/$USER/.cloud9-install.log &
 
 # Only for testing while editing the menu
 #chown $USER /usr/share/applications/

@@ -1,0 +1,193 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: docker-ubuntu-vnc-desktop
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: docker-ubuntu-vnc-desktop
+  name: external-service-docker-ubuntu-vnc-desktop
+  annotations:
+    prometheus.io/scrape: 'true'
+    service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "environment=dev,owner=SRE,job=docker-ubuntu-vnc-desktop"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "3"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "3"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "10"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout: "10"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "TCP"
+  labels:
+    app: docker-ubuntu-vnc-desktop
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 6080
+    targetPort: 80
+  selector:
+    app: docker-ubuntu-vnc-desktop
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: docker-ubuntu-vnc-desktop
+  name: internal-service-docker-ubuntu-vnc-desktop
+spec:
+  selector:
+    app: docker-ubuntu-vnc-desktop
+  ports:
+    - protocol: TCP    
+      port: 6080          
+      targetPort: 80
+
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  namespace: docker-ubuntu-vnc-desktop
+  name: supervisord-config-file
+data:
+  supervisord.conf: |-
+      [supervisord]
+      redirect_stderr=true
+      stopsignal=QUIT
+      autorestart=true
+      directory=/root
+      #
+      [program:nginx]
+      priority=10
+      command=nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
+      #
+      [program:web]
+      priority=10
+      directory=/usr/local/lib/web/backend
+      command=/usr/local/lib/web/backend/run.py
+      stdout_logfile=/dev/fd/1
+      stdout_logfile_maxbytes=0
+      stderr_logfile=/dev/fd/1
+      stderr_logfile_maxbytes=0
+      #
+      #
+      [group:x]
+      programs=xvfb,wm,lxpanel,pcmanfm,x11vnc,novnc
+      #
+      [program:wm]
+      priority=15
+      command=/usr/bin/openbox
+      environment=DISPLAY=":1",HOME="/root",USER="root"
+      #
+      [program:lxpanel]
+      priority=15
+      directory=/home/admin
+      command=/usr/bin/lxpanel --profile LXDE
+      user=admin
+      environment=DISPLAY=":1",HOME="/home/admin",USER="admin"
+      #
+      [program:pcmanfm]
+      priority=15
+      directory=/home/admin
+      command=/usr/bin/pcmanfm --desktop --profile LXDE
+      user=admin
+      environment=DISPLAY=":1",HOME="/home/admin",USER="admin"
+      #
+      [program:xvfb]
+      priority=10
+      command=/usr/local/bin/xvfb.sh
+      stopsignal=KILL
+      #
+      [program:x11vnc]
+      priority=20
+      command=x11vnc -display :1 -xkb -forever -shared -repeat -capslock -rfbauth /.password2
+      #
+      [program:novnc]
+      priority=25
+      directory=/usr/local/lib/web/frontend/static/novnc
+      command=bash /usr/local/lib/web/frontend/static/novnc/utils/launch.sh --listen 6081
+      stopasgroup=true
+      #
+      
+
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secrets-docker-ubuntu-vnc-desktop
+  namespace: docker-ubuntu-vnc-desktop
+data:
+  username: YWRtaW4K              # echo "admin"|base64
+  password: c3VwZXJwYXNzd29yZAo=  # echo "superpassword"|base64
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-ubuntu-vnc-desktop
+  namespace: docker-ubuntu-vnc-desktop
+  labels:
+    app: docker-ubuntu-vnc-desktop
+  annotations:
+    imageregistry: "public"
+    version: "v1"
+spec:
+  replicas: 1     
+  selector:
+    matchLabels:
+      app: docker-ubuntu-vnc-desktop
+  template:
+    metadata:
+      labels:
+        app: docker-ubuntu-vnc-desktop
+      annotations:
+        imageregistry: "public"
+        version: "v1"      
+    spec:
+      containers:
+      - name: docker-ubuntu-vnc-desktop-pod
+        image: dorowu/ubuntu-desktop-lxde-vnc
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RESOLUTION
+          value: "800x600"        
+        - name: USER
+          valueFrom:
+            secretKeyRef:
+              name: secrets-docker-ubuntu-vnc-desktop
+              key: username
+        - name: VNC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secrets-docker-ubuntu-vnc-desktop
+              key: password
+        - name: HTTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secrets-docker-ubuntu-vnc-desktop
+              key: password
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secrets-docker-ubuntu-vnc-desktop
+              key: password      
+        ports:
+         - containerPort: 80
+        resources:
+          limits:
+            cpu: 512m
+            memory: 512Mi
+          requests:
+            cpu: 256m
+            memory: 256Mi
+        volumeMounts:
+          - name: config-file       
+            mountPath: /etc/supervisor/conf.d/ 
+      volumes:
+        - name: config-file
+          configMap:
+            name: supervisord-config-file

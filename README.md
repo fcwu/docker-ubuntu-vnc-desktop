@@ -18,6 +18,7 @@ docker-ubuntu-vnc-desktop is a Docker image to provide web VNC interface to acce
 - [Deploy to a subdirectory (relative url root)](#deploy-to-a-subdirectory-relative-url-root)
 - [Sound (Preview version and Linux only)](#sound-preview-version-and-linux-only)
 - [Generate Dockerfile from jinja template](#generate-dockerfile-from-jinja-template)
+- [Kubernetes deployment](#kubernetes-deployment-for-ubuntu-desktop-lxde-vnc)
 - [Troubleshooting and FAQ](#troubleshooting-and-faq)
 - [License](#license)
 
@@ -153,7 +154,7 @@ Dockerfile and configuration are re-generate if they do not exist. Or you may fo
 
 <br>
 
-# Kubernetes deployment for ubuntu-desktop-lxde-vnc 
+## Kubernetes deployment for ubuntu-desktop-lxde-vnc 
 
 ### Info
 This is usefull when you need a "virtual machine" into your cluster, to work or play with another pods.

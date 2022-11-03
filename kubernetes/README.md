@@ -6,7 +6,7 @@ The deploy some env vars to customize your data (user and passwords) and has a c
 
 
 ### How to deploy
-    kubectl apply -f k8s/k8s-deployment.yaml
+    kubectl apply -f k8s-deployment.yaml
 
 ### Output
     namespace/docker-ubuntu-vnc-desktop created

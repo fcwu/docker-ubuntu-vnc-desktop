@@ -112,7 +112,10 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirr
 
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates gnupg patch
+    && apt-get install -y --no-install-recommends ca-certificates
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl gnupg patch
 
 # nodejs
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \

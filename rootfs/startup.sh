@@ -25,6 +25,9 @@ if [ -n "$TZ" ]; then
     dpkg-reconfigure --frontend noninteractive tzdata
 fi
 
+if [ -n "$FILE_SHARE" ]; then
+    FILE_SHARE=_SHARED_FILES_
+fi
 
 #sed -i "s#/usr/share/backgrounds.*#/usr/share/backgrounds/default.png\"/>#g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
 
@@ -119,9 +122,9 @@ fi
 
 bash /cloud9/configure_desktop.sh &
 
-mkdir -p /home/$USER/Workspace/_Shared_Files_
+mkdir -p /home/$USER/Workspace/$FILE_SHARE
 grep -qxF "/home/$USER/Workspace /workspace none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace /workspace none defaults,bind 0 0" >> /etc/fstab
-grep -qxF "/home/$USER/Workspace/_Shared_Files_ /workspace/_Shared_Files_ none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace/_Shared_Files_ /workspace/_Shared_Files_ none defaults,bind 0 0" >> /etc/fstab
+grep -qxF "/home/$USER/Workspace/_Shared_Files_ /workspace/$FILE_SHARE none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace/$FILE_SHARE /workspace/$FILE_SHARE none defaults,bind 0 0" >> /etc/fstab
 mount -a
 
 # Make directory for bookmarks
@@ -130,7 +133,7 @@ mkdir -p /home/$USER/.config/gtk-3.0
 # Keep these bookmarks
 #grep "Documents" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Documents" >> /home/$USER/.config/gtk-3.0/bookmarks
 grep "Workspace" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace" >> /home/$USER/.config/gtk-3.0/bookmarks
-grep "_Shared_Files_" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/_Shared_Files_" >> /home/$USER/.config/gtk-3.0/bookmarks
+grep "$FILE_SHARE" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Workspace/$FILE_SHARE" >> /home/$USER/.config/gtk-3.0/bookmarks
 grep "Downloads" /home/$USER/.config/gtk-3.0/bookmarks || echo "file:///home/$USER/Downloads" >> /home/$USER/.config/gtk-3.0/bookmarks
 
 # Duke.edu repo is down 8/18/2020

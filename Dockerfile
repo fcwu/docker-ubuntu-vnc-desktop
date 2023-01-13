@@ -181,7 +181,7 @@ RUN apt -y remove thunar
 COPY rootfs /
 
 # Extras
-RUN apt -y install osmctools osmosis
+RUN apt -y install osmctools osmosis whiptail
 
 #RUN rm -rf /workspace/*
 

@@ -182,6 +182,7 @@ COPY rootfs /
 
 # Extras
 RUN apt -y install osmctools osmosis whiptail
+RUN systemctl disable systemd-resolved
 
 #RUN rm -rf /workspace/*
 

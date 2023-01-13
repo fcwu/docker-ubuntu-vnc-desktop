@@ -26,7 +26,7 @@ if [ -n "$TZ" ]; then
 fi
 
 if [ -n "$FILE_SHARE" ]; then
-    FILE_SHARE=_SHARED_FILES_
+    FILE_SHARE=_Shared_Files_
 fi
 
 #sed -i "s#/usr/share/backgrounds.*#/usr/share/backgrounds/default.png\"/>#g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
@@ -129,7 +129,7 @@ bash /cloud9/configure_desktop.sh &
 
 mkdir -p /home/$USER/Workspace/$FILE_SHARE
 grep -qxF "/home/$USER/Workspace /workspace none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace /workspace none defaults,bind 0 0" >> /etc/fstab
-grep -qxF "/home/$USER/Workspace/_Shared_Files_ /workspace/$FILE_SHARE none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace/$FILE_SHARE /workspace/$FILE_SHARE none defaults,bind 0 0" >> /etc/fstab
+grep -qxF "/home/$USER/Workspace/$FILE_SHARE /workspace/$FILE_SHARE none defaults,bind 0 0" /etc/fstab || echo "/home/$USER/Workspace/$FILE_SHARE /workspace/$FILE_SHARE none defaults,bind 0 0" >> /etc/fstab
 mount -a
 
 # Make directory for bookmarks
@@ -149,15 +149,13 @@ if [ -n "$HOSTNAME" ]; then
 fi
 
 if [ -n "$NAMESERVER" ]; then
-    sed -i "s/%nameserver%/nameserver $NAMESERVER/" /etc/resolv.conf
+    echo "nameserver $NAMESERVER" > /etc/resolv.conf
 else
-    sed -i "s/%nameserver%/nameserver 127.0.0.11/" /etc/resolv.conf
+    echo "nameserver 127.0.0.11" > /etc/resolv.conf
 fi
 
 if [ -n "$SEARCHDOMAIN" ]; then
-    sed -i "s/%searchdomain%/search $SEARCHDOMAIN/" /etc/resolv.conf
-else
-    sed -i "s/%searchdomain%/" /etc/resolv.conf
+    echo "search $SEARCHDOMAIN" >> /etc/resolv.conf
 fi
 
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

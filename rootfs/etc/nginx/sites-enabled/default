@@ -1,5 +1,5 @@
 server {
-	listen 80 default_server;
+	listen 6080 default_server;
 	# listen [::]:80 default_server ipv6only=on;
 
 	#_SSL_PORT_#listen 443 ssl default_server;

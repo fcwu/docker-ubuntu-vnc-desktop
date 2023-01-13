@@ -149,13 +149,13 @@ if [ -n "$HOSTNAME" ]; then
 fi
 
 if [ -n "$NAMESERVER" ]; then
-    sed -i "s/%nameserver%/$NAMESERVER/" /etc/resolv.conf
+    sed -i "s/%nameserver%/nameserver $NAMESERVER/" /etc/resolv.conf
 else
     sed -i "s/%nameserver%/nameserver 127.0.0.11/" /etc/resolv.conf
 fi
 
 if [ -n "$SEARCHDOMAIN" ]; then
-    sed -i "s/%searchdomain%/$SEARCHDOMAIN/" /etc/resolv.conf
+    sed -i "s/%searchdomain%/search $SEARCHDOMAIN/" /etc/resolv.conf
 else
     sed -i "s/%searchdomain%/" /etc/resolv.conf
 fi

@@ -189,3 +189,16 @@ RUN ln -sf /etc/osmosis/bin/osmosis /bin
 RUN apt -y install osmctools
 
 #RUN rm -rf /workspace/*
+
+RUN useradd -d /home/ubuntu -u 99 -G sudo -ms /bin/bash ubuntu
+#RUN adduser ubuntu sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN chown ubuntu:ubuntu /home/ubuntu
+
+# Install from user (not doing)
+USER ubuntu
+CMD /bin/bash
+
+run bash /cloud9/user-install.sh
+
+user root

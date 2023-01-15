@@ -27,6 +27,9 @@ fi
 
 if [ -n "$FILE_SHARE" ]; then
     FILE_SHARE=_Shared_Files_
+    sed -i "s/%FILE_SHARE%/_Shared_Files_/" /etc/xdg/user-dirs.defaults
+else
+    sed -i "s/%FILE_SHARE%/$FILE_SHARE/" /etc/xdg/user-dirs.defaults
 fi
 
 #sed -i "s#/usr/share/backgrounds.*#/usr/share/backgrounds/default.png\"/>#g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
@@ -37,6 +40,7 @@ if [ "$USER" != "root" ]; then
     echo "* enable custom user: $USER"
     #useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
     useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $(if [ ! $PUID == "" ]; then echo "--uid $PUID"; fi) $(if [ ! $PGID == "" ]; then echo "--gid $PGID"; fi) $USER
+    chown -R $USER:$USER /home/$USER
 
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""

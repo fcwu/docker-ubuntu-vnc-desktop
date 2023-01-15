@@ -26,10 +26,10 @@ if [ -n "$TZ" ]; then
 fi
 
 if [ -n "$FILE_SHARE" ]; then
+    sed -i "s/%FILE_SHARE%/$FILE_SHARE/" /etc/xdg/user-dirs.defaults
+else
     FILE_SHARE=_Shared_Files_
     sed -i "s/%FILE_SHARE%/_Shared_Files_/" /etc/xdg/user-dirs.defaults
-else
-    sed -i "s/%FILE_SHARE%/$FILE_SHARE/" /etc/xdg/user-dirs.defaults
 fi
 
 #sed -i "s#/usr/share/backgrounds.*#/usr/share/backgrounds/default.png\"/>#g" /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml

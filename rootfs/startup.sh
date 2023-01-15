@@ -40,7 +40,6 @@ if [ "$USER" != "root" ]; then
     echo "* enable custom user: $USER"
     #useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker -d /workspace/.home/$USER $USER
     useradd --create-home --shell /bin/bash --user-group --groups adm,sudo,docker $(if [ ! $PUID == "" ]; then echo "--uid $PUID"; fi) $(if [ ! $PGID == "" ]; then echo "--gid $PGID"; fi) $USER
-    chown -R $USER:$USER /home/$USER
 
     if [ -z "$PASSWORD" ]; then
         echo "  set default password to \"ubuntu\""
@@ -112,10 +111,10 @@ fi
 #chown $USER:$USER /workspace/.c9
 
  
+chown -R $USER:$USER /home/$USER
 
 
-
-#sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /home/$USER/.cloud9-install.log &
+sudo -H -u $USER bash -c 'bash /cloud9/user-install.sh' 2>&1> /home/$USER/.cloud9-install.log &
 
 # Only for testing while editing the menu
 #chown $USER /usr/share/applications/
@@ -162,4 +161,5 @@ if [ -n "$SEARCHDOMAIN" ]; then
     echo "search $SEARCHDOMAIN" >> /etc/resolv.conf
 fi
 
+chown -R $USER:$USER /home/$USER
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

@@ -17,6 +17,8 @@ shopt -s histappend
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 #export HISTFILE=$HOME/.bash_history
 
+# Show date and time in history
+HISTTIMEFORMAT="%Y-%m-%d %T - "
 
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
 HISTSIZE=10000

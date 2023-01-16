@@ -20,8 +20,6 @@ TEXT_INPUT () {
 }
 
 BUILD_MAP () {
-    echo "NAME: $NAME"
-    echo "COORDINATES: $COORDINATES"
     {
         echo 0
         mkdir ${WORKING_DIRECTORY}/${REGION}/${NAME}

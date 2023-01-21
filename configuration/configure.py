@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 from jinja2 import Environment, FileSystemLoader
 from os import mkdir, path
 import argparse

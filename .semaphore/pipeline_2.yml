@@ -12,19 +12,20 @@ blocks:
           commands:
             - checkout
             - git submodule update --init --recursive
+            - '# Login to Dockerhub'
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
             - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:latest || true'
             - 'cd ./configuration && python configure.py --desktop enabled'
             - 'cd ../'
             - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
-            - '# Login to Dockerhub'
-            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
-            - '# Create a version'
+            - '# Create the test version'
             - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:testing'
             - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:testing'
             - 'cd ./configuration && python configure.py --desktop disabled'
             - 'cd ../'
-            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
-            - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:no-desktop-testing'
-            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:no-desktop-testing'
+            - '# Create the test version without the desktop'
+            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest-no-desktop -t devindice/cloud9-ide-vdi .'
+            - 'docker image tag devindice/cloud9-ide-vdi:latest-no-desktop devindice/cloud9-ide-vdi:testing-no-desktop'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:testing-no-desktop'
       secrets:
         - name: Dockerhub

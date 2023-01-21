@@ -15,12 +15,19 @@ blocks:
             - DATE=$(date +%y%U%u)
             - 'VERSION="${DATE}"'
             - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:latest || true'
+            - 'cd ./configuration && python configure.py --desktop enabled'
+            - 'cd ../'
             - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
             - '# Login to Dockerhub'
             - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
             - '# Create a version'
             - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:$VERSION'
             - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:$VERSION'
-            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:latest'
+            - 'cd ./configuration && python configure.py --desktop disabled'
+            - 'cd ../'
+            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
+            - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:$VERSION-no-desktop'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:$VERSION-no-desktop'
+
       secrets:
         - name: Dockerhub

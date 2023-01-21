@@ -1,0 +1,24 @@
+version: v1.0
+name: Deploy RC No Desktop
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: RC Build
+    task:
+      jobs:
+        - name: Build and Push
+          commands:
+            - checkout
+            - git submodule update --init --recursive
+            - '# Login to Dockerhub'
+            - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+            - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:testing-no-desktop || true'
+            - 'cd ./configuration && python configure.py --desktop disabled'
+            - 'cd ../'
+            - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:testing-no-desktop -t $DOCKER_USERNAME/cloud9-ide-vdi:testing-no-desktop .'
+            - '# Push the test version'
+            - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:testing-no-desktop'
+      secrets:
+        - name: Dockerhub

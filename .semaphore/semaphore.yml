@@ -14,11 +14,19 @@ blocks:
       secrets:
         - name: Dockerhub
 promotions:
-  - name: Deploy Release Candidate
-    pipeline_file: pipeline_2.yml
+  - name: Deploy RC
+    pipeline_file: pipeline_rc.yml
     auto_promote:
       when: branch = 'release' AND result = 'passed'
-  - name: Deploy Production
-    pipeline_file: pipeline_3.yml
+  - name: Deploy RC No Desktop
+    pipeline_file: pipeline_rc_no_desktop.yml
+    auto_promote:
+      when: branch = 'release' AND result = 'passed'
+  - name: Deploy Prod 
+    pipeline_file: pipeline_prod.yml
+    auto_promote:
+      when: branch = 'master' AND result = 'passed'
+  - name: Deploy Prod No Desktop
+    pipeline_file: pipeline_prod_no_desktop.yml
     auto_promote:
       when: branch = 'master' AND result = 'passed'

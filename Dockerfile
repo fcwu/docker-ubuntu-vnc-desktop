@@ -36,7 +36,7 @@ RUN apt update \
 # install debs error if combine together
 RUN apt update \
     && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
-        xvfb x11vnc ttf-ubuntu-font-family ttf-wqy-zenhei  \
+        xvfb x11vnc ttf-wqy-zenhei  \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*

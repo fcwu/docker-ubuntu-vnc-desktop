@@ -1,7 +1,51 @@
 server {
 	listen 6080 default_server;
 	
-	root /usr/local/lib/web/disabled/;
+	#_SSL_PORT_#listen 443 ssl default_server;
+	#_SSL_PORT_#listen [::]:443 ssl default_server ipv6only=on;
+	#_SSL_PORT_#ssl_certificate /etc/nginx/ssl/nginx.crt;
+	#_SSL_PORT_#ssl_certificate_key /etc/nginx/ssl/nginx.key;
+	
+	#_HTTP_PASSWORD_#auth_basic "Private Property";
+	#_HTTP_PASSWORD_#auth_basic_user_file /etc/nginx/.htpasswd;
+
+	root /usr/local/lib/web/frontend/;
 	index index.html index.htm;
+
+	#_RELATIVE_URL_ROOT_location /_RELATIVE_URL_ROOT_/ {
+	#_RELATIVE_URL_ROOT_	rewrite /_RELATIVE_URL_ROOT_/(.*) /$1 break;
+	#_RELATIVE_URL_ROOT_	root /usr/local/lib/web/frontend/;
+	#_RELATIVE_URL_ROOT_}
+
+	location ~ .*/(api/.*|websockify) {
+		try_files $uri @api$http_upgrade;
+	}
+
+	location / {
+		rewrite /approot/(.*) /$1 break;
+		root /usr/local/lib/web/frontend/;
+	}
+
+	location @apiwebsocket {
+		#_RELATIVE_URL_ROOT_rewrite /_RELATIVE_URL_ROOT_/(.*) $1 break;
+		proxy_connect_timeout       7d;
+		proxy_send_timeout          7d;
+		proxy_read_timeout          7d;
+		proxy_buffering                         off;
+
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "upgrade";
+		proxy_pass http://127.0.0.1:6081;
+	}
+
+	location @api {
+		#_RELATIVE_URL_ROOT_rewrite /_RELATIVE_URL_ROOT_/(.*) $1 break;
+		proxy_set_header X-Real-IP  $remote_addr;
+		proxy_set_header X-Forwarded-For $remote_addr;
+		proxy_set_header Host $host;
+		max_ranges 0;
+		proxy_pass http://127.0.0.1:6079;
+	}
 	
 }

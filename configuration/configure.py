@@ -10,7 +10,7 @@ args = parser.parse_args()
 # Default Nginx
 environment = Environment(loader=FileSystemLoader("./"))
 template = environment.get_template("nginx_default.j2")
-filename = f"../../etc/nginx/sites-enabled/default"
+filename = f"../rootfs/etc/nginx/sites-enabled/default"
 content = template.render(
     desktop=args.desktop,
 )
@@ -22,7 +22,7 @@ with open(filename, mode="w", encoding="utf-8") as message:
 # Supervisor Conf
 environment = Environment(loader=FileSystemLoader("./"))
 template = environment.get_template("supervisord.conf.j2")
-filename = f"../../etc/supervisor/conf.d/supervisord.conf"
+filename = f"../rootfs/etc/supervisor/conf.d/supervisord.conf"
 
 content = template.render(
     desktop=args.desktop,

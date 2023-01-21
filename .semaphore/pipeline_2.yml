@@ -13,14 +13,14 @@ blocks:
             - checkout
             - git submodule update --init --recursive
             - 'docker pull $DOCKER_USERNAME/cloud9-ide-vdi:latest || true'
-            - 'cd /rootfs/workspace/configuration && ./configure.py --desktop enabled'
+            - 'cd ./configuration && ./configure.py --desktop enabled'
             - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
             - '# Login to Dockerhub'
             - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
             - '# Create a version'
             - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:testing'
             - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:testing'
-            - 'cd /rootfs/workspace/configuration && ./configure.py --desktop disabled'
+            - 'cd ./configuration && ./configure.py --desktop disabled'
             - 'docker build --cache-from=$DOCKER_USERNAME/cloud9-ide-vdi:latest -t devindice/cloud9-ide-vdi .'
             - 'docker image tag devindice/cloud9-ide-vdi:latest devindice/cloud9-ide-vdi:no-desktop-testing'
             - 'docker push $DOCKER_USERNAME/cloud9-ide-vdi:no-desktop-testing'

@@ -1,0 +1,67 @@
+[supervisord]
+redirect_stderr=true
+stopsignal=QUIT
+autorestart=true
+directory=/root
+
+[program:nginx]
+priority=10
+command=nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
+
+{% if desktop == "enabled" %}
+[program:web]
+priority=10
+directory=/usr/local/lib/web/backend
+command=/usr/local/lib/web/backend/run.py
+stdout_logfile=/dev/fd/1
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/fd/1
+stderr_logfile_maxbytes=0
+
+[group:x]
+programs=xfce4,xvfb,x11vnc,novnc,cloud9,desktop
+{% else %}
+[group:x]
+programs=cloud9
+{% endif %}
+
+[program:xfce4]
+priority=15
+directory=%HOME%
+command=/usr/bin/startxfce4
+user=%USER%
+environment=DISPLAY=":1",HOME="%HOME%",USER="%USER%"
+
+[program:xvfb]
+priority=10
+command=/usr/local/bin/xvfb.sh
+stopsignal=KILL
+
+[program:x11vnc]
+priority=20
+command=bash -c 'x11vnc -display :1 -xkb -forever -shared -repeat -capslock || rm /tmp/.X11-unix/X1 /tmp/.X1-lockfb'
+
+[program:novnc]
+priority=25
+directory=/usr/local/lib/web/frontend/static/novnc
+command=bash /usr/local/lib/web/frontend/static/novnc/utils/launch.sh --listen 6081
+stopasgroup=true
+
+[program:cloud9]
+priority=25
+directory=/cloud9/c9sdk
+user=%USER%
+command=bash -c 'while ps aux | grep user-install.sh | grep -v grep 2>&1> /dev/null; do sleep 1; done; node server.js -l 0.0.0.0 -p 9999 -a : -w /workspace'
+
+[program:desktop]
+priority=30
+directory=/home/%USER%/.dynamic-background/active
+user=%USER%
+command=bash /usr/share/backgrounds/dynamic.sh
+
+[program:desktop]
+priority=25
+directory=/cloud9/c9sdk
+user=%USER%
+command=bash -c 'while ps aux | grep user-install.sh | grep -v grep 2>&1> /dev/null; do sleep 1; done; node server.js -l 0.0.0.0 -p 9999 -a : -w /workspace'
+

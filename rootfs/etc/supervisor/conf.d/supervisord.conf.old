@@ -9,8 +9,17 @@ priority=10
 command=nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
 
 
+[program:web]
+priority=10
+directory=/usr/local/lib/web/backend
+command=/usr/local/lib/web/backend/run.py
+stdout_logfile=/dev/fd/1
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/fd/1
+stderr_logfile_maxbytes=0
+
 [group:x]
-programs=cloud9
+programs=xfce4,xvfb,x11vnc,novnc,cloud9,desktop
 
 
 [program:xfce4]

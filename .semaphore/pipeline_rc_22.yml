@@ -1,5 +1,5 @@
 version: v1.0
-name: Deploy Release Candidate
+name: Deploy RC 22.04
 agent:
   machine:
     type: e1-standard-2

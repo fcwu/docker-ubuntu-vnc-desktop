@@ -8,9 +8,9 @@
 FROM ubuntu:22.04 as system
 {% else %}
 FROM ubuntu:20.04 as system
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 {% endif %}
 
-RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 
 # Ca-Certificates
 RUN apt update \
@@ -43,14 +43,6 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-#RUN apt update \
-#    && apt install -y gpg-agent \
-#    && curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-#    && (dpkg -i ./google-chrome-stable_current_amd64.deb || apt-get install -fy) \
-#    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add \
-#    && rm google-chrome-stable_current_amd64.deb \
-#    && rm -rf /var/lib/apt/lists/*
-
 # Install Desktop
 RUN apt update \
     && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
@@ -72,19 +64,24 @@ RUN apt update \
     && mkdir /usr/local/ffmpeg \
     && ln -s /usr/bin/ffmpeg /usr/local/ffmpeg/ffmpeg
 
+{% if version == "22" %}
 # python library
-#COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
-#RUN apt-get update \
-#    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
-#    && apt-get install -y python3-pip python3-dev build-essential \
-#	&& pip3 install setuptools wheel && pip3 install -r /tmp/requirements.txt \
-#    && ln -s /usr/bin/python3 /usr/local/bin/python \
-#    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
-#    && apt-get remove -y `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
-#    && apt-get autoclean -y \
-#    && apt-get autoremove -y \
-#    && rm -rf /var/lib/apt/lists/* \
-#    && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
+{% else %}
+# python library
+COPY rootfs/usr/local/lib/web/backend/requirements.txt /tmp/
+RUN apt-get update \
+    && dpkg-query -W -f='${Package}\n' > /tmp/a.txt \
+    && apt-get install -y python3-pip python3-dev build-essential \
+	&& pip3 install setuptools wheel && pip3 install -r /tmp/requirements.txt \
+    && ln -s /usr/bin/python3 /usr/local/bin/python \
+    && dpkg-query -W -f='${Package}\n' > /tmp/b.txt \
+    && apt-get remove -y `diff --changed-group-format='%>' --unchanged-group-format='' /tmp/a.txt /tmp/b.txt | xargs` \
+    && apt-get autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/* /tmp/a.txt /tmp/b.txt
+{% endif %}
+
 
 # Install Additonal Packages
 RUN mkdir /cloud9
@@ -109,10 +106,12 @@ RUN wget -O user-install.sh https://raw.githubusercontent.com/c9/install/master/
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:20.04 as builder
-
-
+{% if version == "22" %}
+FROM ubuntu:22.04 as system
+{% else %}
+FROM ubuntu:20.04 as system
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
+{% endif %}
 
 
 RUN apt-get update \
@@ -122,8 +121,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg patch
 
 # nodejs
+{% if version == "22" %}
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+    && apt-get install -y nodejs
+{% else %}
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y nodejs
+{% endif %}
+
 
 # yarn
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -168,7 +173,12 @@ RUN echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 RUN apt-get update
+{% if version == "22" %}
+#TBD
+{% else %}
 RUN apt-get -y install nautilus menulibre python3-pip keychain python3.8-venv strace gedit gvfs-backends
+{% endif %}
+
 RUN apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 RUN wget -O beyond-compare.deb https://www.scootersoftware.com/$(curl -sd "platform=linux" https://www.scootersoftware.com/download.php | grep amd64.deb | awk -F\" '{print $2}' | sed 's/\///g')
@@ -185,7 +195,12 @@ RUN apt -y remove thunar
 COPY rootfs /
 
 # Extras
+{% if version == "22" %}
+#TBD
+{% else %}
 RUN apt -y install osmctools osmosis whiptail
+{% endif %}
+
 RUN systemctl disable systemd-resolved
 
 #RUN rm -rf /workspace/*

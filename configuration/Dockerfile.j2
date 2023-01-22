@@ -123,9 +123,9 @@ RUN wget -O user-install.sh https://raw.githubusercontent.com/c9/install/master/
 # builder
 ################################################################################
 {% if version == "22" %}
-FROM ubuntu:22.04 as system
+FROM ubuntu:22.04 as builder
 {% else %}
-FROM ubuntu:20.04 as system
+FROM ubuntu:20.04 as builder
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;
 {% endif %}
 

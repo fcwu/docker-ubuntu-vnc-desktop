@@ -35,6 +35,15 @@ RUN apt update \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
     
+{% if version == "22" %}
+# install debs error if combine together
+RUN apt update \
+    && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
+        xvfb x11vnc ttf-wqy-zenhei  \
+    && apt autoclean -y \
+    && apt autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+{% else %}
 # install debs error if combine together
 RUN apt update \
     && apt install -y -o Dpkg::Options::='--force-confold' --no-install-recommends --allow-unauthenticated \
@@ -42,6 +51,8 @@ RUN apt update \
     && apt autoclean -y \
     && apt autoremove -y \
     && rm -rf /var/lib/apt/lists/*
+{% endif %}
+
 
 # Install Desktop
 RUN apt update \

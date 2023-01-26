@@ -33,9 +33,3 @@ libreoffice
 pinta
 firefox
 #chrome?
-ansible
-terraform
-golang
-whiptail
-osmctools
-osmosis

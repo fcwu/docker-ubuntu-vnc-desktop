@@ -182,6 +182,9 @@ RUN apt -y remove thunar
 # Copy files
 COPY rootfs /
 
+# Extras
+RUN apt -y install ansible terraform golang whiptail osmctools osmosis
+
 #RUN rm -rf /workspace/*
 
 RUN useradd -d /home/ubuntu -u 99 -G sudo -ms /bin/bash ubuntu

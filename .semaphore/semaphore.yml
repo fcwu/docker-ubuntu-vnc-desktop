@@ -18,10 +18,6 @@ promotions:
     pipeline_file: pipeline_rc.yml
     auto_promote:
       when: branch = 'release' AND result = 'passed'
-  - name: Deploy RC 22.04
-    pipeline_file: pipeline_rc_22.yml
-    auto_promote:
-      when: branch = 'release' AND result = 'passed'
   - name: Deploy RC No Desktop
     pipeline_file: pipeline_rc_no_desktop.yml
     auto_promote:

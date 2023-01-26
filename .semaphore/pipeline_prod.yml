@@ -4,6 +4,11 @@ agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu2004
+    
+queue:
+  name: Deployment queue
+  scope: project
+  
 blocks:
   - name: Production Build
     task:

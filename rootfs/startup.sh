@@ -161,5 +161,11 @@ if [ -n "$SEARCHDOMAIN" ]; then
     echo "search $SEARCHDOMAIN" >> /etc/resolv.conf
 fi
 
+if [ -n "$AFTERINSTALL" ]; then
+    if [ -d "/etc/config" ]; then
+        bash /etc/config/$AFTERINSTALL
+    fi
+fi
+
 chown -R $USER:$USER /home/$USER
 exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf

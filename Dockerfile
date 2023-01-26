@@ -99,7 +99,7 @@ RUN apt update \
 RUN git clone https://github.com/c9/core.git /cloud9/c9sdk
 #RUN mkdir -p /cloud9/c9sdk/build /workspace/.ubuntu/.standalone
 #RUN ln -sf /workspace/.ubuntu/.standalone /cloud9/c9sdk/build/standalone
-RUN /cloud9/c9sdk/scripts/install-sdk.sh
+#RUN /cloud9/c9sdk/scripts/install-sdk.sh
 RUN cd /cloud9/c9sdk && git reset --hard
 RUN wget -O user-install.sh https://raw.githubusercontent.com/c9/install/master/install.sh && mv user-install.sh /cloud9/
 
@@ -181,10 +181,6 @@ RUN apt -y remove thunar
 
 # Copy files
 COPY rootfs /
-
-# Extras
-RUN apt -y install osmctools osmosis whiptail
-RUN systemctl disable systemd-resolved
 
 #RUN rm -rf /workspace/*
 

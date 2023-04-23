@@ -4,7 +4,7 @@
 # base system
 ################################################################################
 
-FROM ubuntu:20.04 as system
+FROM ubuntu:kinetic as system
 
 
 
@@ -82,7 +82,7 @@ RUN apt-get update \
 ################################################################################
 # builder
 ################################################################################
-FROM ubuntu:20.04 as builder
+FROM ubuntu:kinetic as builder
 
 
 RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list;

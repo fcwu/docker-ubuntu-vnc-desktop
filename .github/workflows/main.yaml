@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'releases/**'
+      - 'release/**'
 
 env:
   AWS_REGISTRY: "230690759643.dkr.ecr.eu-west-1.amazonaws.com"

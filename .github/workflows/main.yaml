@@ -9,6 +9,10 @@ on:
 env:
   AWS_REGISTRY: "230690759643.dkr.ecr.eu-west-1.amazonaws.com"
   REPOSITORY_NAME: "docker-ubuntu-vnc-desktop"
+  with:
+    submodules:recursive
+
+    
 
 jobs:
   build:
@@ -35,4 +39,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: "${{ env.AWS_REGISTRY }}/${{ env.REPOSITORY_NAME }}:${{ env.BRANCH }}${{ github.run_number }}"
+        tags: "${{ env.AWS_REGISTRY }}/${{ env.REPOSITORY_NAME }}:v${{ github.run_number }}"

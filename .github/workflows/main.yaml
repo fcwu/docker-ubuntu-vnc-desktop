@@ -8,16 +8,13 @@ on:
 
 env:
   AWS_REGISTRY: "230690759643.dkr.ecr.eu-west-1.amazonaws.com"
-  REPOSITORY_NAME: "docker-ubuntu-vnc-desktop"
+  REPOSITORY_NAME: "vnc-desktop"
   with:
     submodules:recursive
-
-    
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -40,3 +37,4 @@ jobs:
         context: .
         push: true
         tags: "${{ env.AWS_REGISTRY }}/${{ env.REPOSITORY_NAME }}:v${{ github.run_number }}"
+

@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main
+      - 'releases/**'
 
 env:
   AWS_REGISTRY: "230690759643.dkr.ecr.eu-west-1.amazonaws.com"
-  REPOSITORY_NAME: "uv-system-consts-updater"
+  REPOSITORY_NAME: "docker-ubuntu-vnc-desktop"
 
 jobs:
   build:
@@ -16,11 +17,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Python 3
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1-node16
@@ -33,13 +29,10 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
 
     - name: Build Docker Image
       uses: docker/build-push-action@v3
       with:
         context: .
         push: true
-        tags: "${{ env.AWS_REGISTRY }}/${{ env.REPOSITORY_NAME }}:v${{ github.run_number }}"
+        tags: "${{ env.AWS_REGISTRY }}/${{ env.REPOSITORY_NAME }}:${{ env.BRANCH }}${{ github.run_number }}"

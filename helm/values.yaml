@@ -4,7 +4,8 @@ imagePullSecrets:
   - name: regcred
 
 image:
-  repository: 230690759643.dkr.ecr.eu-west-1.amazonaws.com/vnc-desktop
+  repository: 230690759643.dkr.ecr.eu-west-1.amazonaws.com
+  name: vnc-desktop
   tag: ''
 
 namespace: uveye

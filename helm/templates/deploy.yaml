@@ -36,7 +36,7 @@ spec:
               name: http
           env:
             {{- toYaml .Values.env | nindent 10 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: IfNotPresent
           {{- with .Values.livenessProbe }}
           livenessProbe:

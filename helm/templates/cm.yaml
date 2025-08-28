@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    "helm.sh/hook-weight": "-5"
+  labels:
+    {{- include "uv-portal-desktop.labels"  . | nindent 4 }}
+  name: {{ include "uv-portal-desktop.name" . }}
+  namespace: {{ include "uv-portal-desktop.namespace" . }}
+data:
+{{- .Values.configMapData | toYaml | nindent 2 }}

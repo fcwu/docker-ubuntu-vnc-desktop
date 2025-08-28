@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=lpr
+Type=Application
+Icon=google-chrome
+Exec=/usr/bin/google-chrome http://192.168.5.245
+Terminal=false

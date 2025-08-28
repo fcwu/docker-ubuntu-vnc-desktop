@@ -121,6 +121,10 @@ COPY rootfs /
 RUN ln -sf /usr/local/lib/web/frontend/static/websockify /usr/local/lib/web/frontend/static/novnc/utils/websockify && \
 	chmod +x /usr/local/lib/web/frontend/static/websockify/run
 
+# Copy
+COPY  icons/applications/* /usr/share/applications/
+COPY  icons/*.desktop  /home/uvdesk/Desktop/
+
 EXPOSE 80
 WORKDIR /root
 ENV HOME=/home/ubuntu \

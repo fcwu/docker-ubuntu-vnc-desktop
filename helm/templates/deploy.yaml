@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "uv-portal-desktop.labels" . | nindent 4 }}
+    {{- if .Values.labels }}
+    {{ toYaml .Values.labels | nindent 4 }}
+    {{- end}}
+  name: {{ include "uv-portal-desktop.name" . }}
+  namespace: {{ include "uv-portal-desktop.namespace" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "uv-portal-desktop.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "uv-portal-desktop.matchLabels" . | nindent 8 }}
+      name: {{ include "uv-portal-desktop.name" . }}
+    spec:
+      {{- with .Values.affinity }}
+      affinity:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      hostAliases:
+        - ip: 10.43.100.100
+          hostnames:
+            - uvportal.uveye.local
+      containers:
+        - name: {{ include "uv-portal-desktop.name" . }}
+          ports:
+            - containerPort: 5900
+              name: vnc
+            - containerPort: 6080
+              name: http
+          env:
+            {{- toYaml .Values.env | nindent 10 }}
+          image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: IfNotPresent
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: x11-unix
+              mountPath: /tmp/.X11-unix
+            - name: x11-xkb
+              mountPath: /usr/share/X11/xkb
+            - name: xserver
+              mountPath: /root/.Xauthority
+            - name: {{ include "uv-portal-desktop.name" . }}
+              mountPath: /etc/supervisor/conf.d/
+            - name: cache-volume
+              mountPath: /dev/shm
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: x11-unix
+          hostPath:
+            path: /tmp/.X11-unix
+        - name: x11-xkb
+          hostPath:
+            path: /usr/share/X11/xkb
+        - configMap:
+            name: {{ include "uv-portal-desktop.name" . }}
+          name: {{ include "uv-portal-desktop.name" . }}
+        - name: xserver
+          hostPath:
+            path: /home/uvadmin/.Xauthority
+            type: File
+        - name: cache-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi

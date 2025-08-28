@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=UVportal
+Type=Application
+Icon=google-chrome
+Exec=/usr/bin/google-chrome http://uvportal.uveye.local
+Terminal=false

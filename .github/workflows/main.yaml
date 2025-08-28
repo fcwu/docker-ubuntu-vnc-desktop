@@ -1,0 +1,38 @@
+name: Build and push Docker Image to ECR
+
+on:
+  push:
+    branches:
+      - main
+      - 'release_v**'
+env:
+  REPOSITORY_NAME: "vnc-desktop"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+
+    - name: Build Docker Image
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: "${{ secrets.AWS_REGISTRY }}/${{ env.REPOSITORY_NAME }}:${{ github.ref_name }}.${{ github.run_number }}"

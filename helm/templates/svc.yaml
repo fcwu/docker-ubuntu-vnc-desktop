@@ -1,0 +1,29 @@
+{{- if .Values.service.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+  labels:
+    {{- include "uv-portal-desktop.labels" . | nindent 4 }}
+{{- if .Values.service.labels }}
+{{ toYaml .Values.service.labels | indent 4 }}
+{{- end }}
+  name: {{ include "uv-portal-desktop.name" . }}
+  namespace: {{ include "uv-portal-desktop.namespace" . }}
+spec:
+  ports:
+    - name: http
+      port: 30080
+      nodePort: 30080
+      targetPort: http
+    - name: vnc
+      port: 5900
+      nodePort: 30590
+      targetPort: vnc
+  selector:
+    {{- include "uv-portal-desktop.matchLabels" . | nindent 4 }}
+  type: "{{ .Values.service.type }}"
+{{- end -}}
